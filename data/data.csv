@@ -1,0 +1,54 @@
+clause,"ENC-1","ENC-2","HAN-1","HAN-2","HAN-3","IAM-1","IAM-2"
+"The service provider must ensure that all data is encrypted at rest",1,0,0,0,0,0,0
+"The service provider must ensure that all data is encrypted in transit",0,1,0,0,0,0,0
+"The service provider must ensure that data is destroyed when no longer required",0,0,1,0,0,0,0
+"The service provider must ensure that data is destroyed when requested by the client",0,0,0,1,0,0,0
+"The service provider must ensure that data is handled in accordance with data privacy laws",0,0,0,0,1,0,0
+"The service provider must ensure that access to data is restricted to authorised personnel",0,0,0,0,0,1,0
+"The service provider must ensure that access to data is restricted to only those with a legitimate business need",0,0,0,0,0,0,1
+"The Service Provider shall encrypt all client data stored at rest using encryption standards that meet or exceed AES-256.",1,0,0,0,0,0,0
+"All client data stored at rest,including database records,file storage,backups,and archive systems,must be encrypted at all times.",1,0,0,0,0,0,0
+"The Service Provider shall manage encryption keys securely through an established key management system,ensuring keys are stored separately from the encrypted data and accessible only to authorised personnel.",1,0,0,0,0,0,0
+"The Service Provider shall implement strict access controls to ensure that only authorised personnel can decrypt and access client data stored at rest.",1,0,0,0,0,0,0
+"The Service Provider shall ensure that all client data stored in backup systems is encrypted using the same standards as primary data storage.",1,0,0,0,0,0,0
+"The Service Provider shall maintain and provide,upon request,documentation of its encryption policies,including methods used for encrypting data at rest and protocols for key management.",1,0,0,0,0,0,0
+"The Service Provider shall ensure that all encryption of data at rest complies with applicable laws,regulations,and industry best practices.",1,0,0,0,0,0,0
+"The Service Provider shall continuously monitor and log encryption processes for all client data stored at rest and maintain these logs for a minimum of 1 year,making them available to the Client upon request.",1,0,0,0,0,0,0
+"The Service Provider shall conduct regular testing and audits to verify that all client data stored at rest remains encrypted and protected,with findings provided to the Client upon request.",1,0,0,0,0,0,0
+"Failure to encrypt client data stored at rest as required under this agreement shall constitute a material breach,entitling the Client to suspend or terminate the agreement,demand immediate corrective action,or seek damages as appropriate.",1,0,0,0,0,0,0
+"The Service Provider shall encrypt all client data in transit using encryption standards that meet or exceed TLS 1.2.",0,1,0,0,0,0,0
+"All client data transmitted between the Client and Service Provider,including data sent over public networks,must be encrypted using TLS 1.2 or higher.",0,1,0,0,0,0,0
+"The Service Provider shall ensure that all data transmitted between the Client and Service Provider is encrypted in both directions to protect against interception and tampering.",0,1,0,0,0,0,0
+"The Service Provider shall maintain and provide,upon request,documentation of its encryption policies,including methods used for encrypting data in transit and protocols for key management.",0,1,0,0,0,0,0
+"The Service Provider shall ensure that all encryption of data in transit complies with applicable laws,regulations,and industry best practices.",0,1,0,0,0,0,0
+"The Service Provider shall continuously monitor and log encryption processes for all client data transmitted between the Client and Service Provider and maintain these logs for a minimum of 1 year,making them available to the Client upon request.",0,1,0,0,0,0,0
+"The Service Provider shall conduct regular testing and audits to verify that all client data transmitted between the Client and Service Provider remains encrypted and protected,with findings provided to the Client upon request.",0,1,0,0,0,0,0
+"Failure to encrypt client data in transit as required under this agreement shall constitute a material breach,entitling the Client to suspend or terminate the agreement,demand immediate corrective action,or seek damages as appropriate.",0,1,0,0,0,0,0
+"The Service Provider shall establish and maintain a data retention policy that outlines the procedures for securely deleting data when it is no longer required.",0,0,1,0,0,0,0
+"The Service Provider shall ensure that all client data is securely deleted in accordance with the data retention policy upon termination of the agreement or at the Client's request.",0,0,0,1,0,0,0
+"The Service Provider shall maintain and provide,upon request,documentation of its data retention policy,including procedures for securely deleting data and protocols for verifying data destruction.",0,0,1,0,0,0,0
+"The Service Provider shall ensure that all data destruction processes comply with applicable laws,regulations,and industry best practices.",0,0,1,0,0,0,0
+"The Service Provider shall continuously monitor and log data destruction processes for all client data and maintain these logs for a minimum of 1 year,making them available to the Client upon request.",0,0,1,0,0,0,0
+"The Service Provider shall conduct regular testing and audits to verify that all client data is securely deleted when no longer required,with findings provided to the Client upon request.",0,0,1,0,0,0,0
+"Failure to securely delete client data as required under this agreement shall constitute a material breach,entitling the Client to suspend or terminate the agreement,demand immediate corrective action,or seek damages as appropriate.",0,0,1,0,0,0,0
+"The Service Provider shall establish and maintain a data handling policy that outlines the procedures for handling client data in accordance with data privacy laws.",0,0,0,0,1,0,0
+"The Service Provider shall ensure that all client data is handled in accordance with data privacy laws,including restrictions on data collection,processing,storage,and sharing.",0,0,0,0,1,0,0
+"The Service Provider shall maintain and provide,upon request,documentation of its data handling policy,including procedures for handling client data in compliance with data privacy laws and protocols for data protection.",0,0,0,0,1,0,0
+"The Service Provider shall ensure that all data handling processes comply with applicable data privacy laws,regulations,and industry best practices.",0,0,0,0,1,0,0
+"The Service Provider shall continuously monitor and log data handling processes for all client data and maintain these logs for a minimum of 1 year,making them available to the Client upon request.",0,0,0,0,1,0,0
+"The Service Provider shall conduct regular testing and audits to verify that all client data is handled in accordance with data privacy laws,with findings provided to the Client upon request.",0,0,0,0,1,0,0
+"Failure to handle client data in accordance with data privacy laws as required under this agreement shall constitute a material breach,entitling the Client to suspend or terminate the agreement,demand immediate corrective action,or seek damages as appropriate.",0,0,0,0,1,0,0
+"The Service Provider shall establish and maintain an access control policy that outlines the procedures for restricting access to client data to authorised personnel.",0,0,0,0,0,1,0
+"The Service Provider shall ensure that access to client data is restricted to authorised personnel only,with access controls in place to prevent unauthorised access or disclosure.",0,0,0,0,0,1,0
+"The Service Provider shall maintain and provide,upon request,documentation of its access control policy,including procedures for restricting access to client data and protocols for access management.",0,0,0,0,0,1,0
+"The Service Provider shall ensure that all access control processes comply with applicable laws,regulations,and industry best practices.",0,0,0,0,0,1,0
+"The Service Provider shall continuously monitor and log access control processes for all client data and maintain these logs for a minimum of 1 year,making them available to the Client upon request.",0,0,0,0,0,1,0
+"The Service Provider shall conduct regular testing and audits to verify that access to client data is restricted to authorised personnel,with findings provided to the Client upon request.",0,0,0,0,0,1,0
+"Failure to restrict access to client data as required under this agreement shall constitute a material breach,entitling the Client to suspend or terminate the agreement,demand immediate corrective action,or seek damages as appropriate.",0,0,0,0,0,1,0
+"The Service Provider shall establish and maintain an access control policy that outlines the procedures for restricting access to client data to only those with a legitimate business need.",0,0,0,0,0,0,1
+"The Service Provider shall ensure that access to client data is restricted to only those with a legitimate business need,with access controls in place to prevent unauthorised access or disclosure.",0,0,0,0,0,0,1
+"The Service Provider shall maintain and provide,upon request,documentation of its access control policy,including procedures for restricting access to client data and protocols for access management.",0,0,0,0,0,0,1
+"The Service Provider shall ensure that all access control processes comply with applicable laws,regulations,and industry best practices.",0,0,0,0,0,0,1
+"The Service Provider shall continuously monitor and log access control processes for all client data and maintain these logs for a minimum of 1 year,making them available to the Client upon request.",0,0,0,0,0,0,1
+"The Service Provider shall conduct regular testing and audits to verify that access to client data is restricted to only those with a legitimate business need,with findings provided to the Client upon request.",0,0,0,0,0,0,1
+"Failure to restrict access to client data as required under this agreement shall constitute a material breach,entitling the Client to suspend or terminate the agreement,demand immediate corrective action,or seek damages as appropriate.",0,0,0,0,0,0,1
