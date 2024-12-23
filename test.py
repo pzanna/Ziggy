@@ -36,7 +36,7 @@ label2id = pd.Series(labels.id.values, index=labels.requirement).to_dict()
 num_classes = len(id2label)
 
 # Input text
-input_text = "XYZ agrees to encrypt all data in transit for the period of the contract."
+input_text = "XYZ agrees to encrypt all data is stored in an encrypted format for the period of the contract."
 
 # Tokenise and preprocess
 input_ids = torch.tensor([encode_text(input_text, max_seq_length)], dtype=torch.int64)

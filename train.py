@@ -40,7 +40,7 @@ max_seq_length = 512
 learning_rate = 1e-4
 batch_size = 32
 epochs = 10
-dropout = 0.2
+dropout = 0.1
 
 # Define file paths
 model_path = "/Users/paulzanna/Github/Ziggy/model/"
@@ -152,11 +152,6 @@ id2label = pd.Series(labels.requirement.values, index=labels.id).to_dict()
 label2id = pd.Series(labels.id.values, index=labels.requirement).to_dict()
 num_classes = len(id2label)
 
-# print labels
-# print(labels)
-# print(id2label)
-# print(label2id)
-
 # Load data
 clause_data = pd.read_csv(data_path + data_filename)
 
@@ -173,7 +168,7 @@ clause_data = clause_data[clause_data['label'] != -1]  # Remove empty labels
 clause_label = clause_label.to_list()
 
 # label distribution
-print("Label distribution", dict(Counter(clause_label)))
+print(num_classes, "labels with the distribution", dict(Counter(clause_label)))
 
 # Convert clauses to a dataset
 dataset = TextClassificationDataset(clauses, clause_label, max_seq_length)
