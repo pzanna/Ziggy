@@ -40,6 +40,7 @@ max_seq_length = 512
 learning_rate = 1e-4
 batch_size = 32
 epochs = 10
+dropout = 0.2
 
 # Define file paths
 model_path = "/Users/paulzanna/Github/Ziggy/model/"
@@ -81,17 +82,16 @@ class TransformerClassifier(nn.Module):
         super(TransformerClassifier, self).__init__()
         self.embedding = nn.Embedding(vocab_size, embed_dim)
         self.positional_encoding = nn.Parameter(torch.zeros(1, max_seq_length, embed_dim))
-        encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_heads, batch_first=True)  # Updated
+        encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_heads, batch_first=True, dropout=dropout)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         self.fc = nn.Linear(embed_dim, num_classes)
 
     def forward(self, input_ids, attention_mask):
         embedded = self.embedding(input_ids) + self.positional_encoding[:, :input_ids.size(1), :]
         transformer_output = self.transformer_encoder(
-            embedded,  # Shape: (batch_size, seq_length, embed_dim)
-            src_key_padding_mask=~attention_mask.bool()
+            embedded, src_key_padding_mask=~attention_mask.bool()
         )
-        pooled_output = transformer_output.mean(dim=1)  # Mean pooling over sequence length
+        pooled_output = transformer_output.mean(dim=1)
         logits = self.fc(pooled_output)
         return logits
     
