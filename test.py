@@ -1,3 +1,8 @@
+# Description: Test the ONNX model with a sample input text
+# Author: Paul Zanna
+# Date: 25/12/2024
+
+# Import libraries
 import torch
 import onnxruntime as ort
 import tiktoken
@@ -5,19 +10,23 @@ import numpy as np
 import pandas as pd
 
 # Define file paths
-model_path = "/Users/paulzanna/Github/Ziggy/model/"
-model_filename = "ziggy_model.bin"
-onnx_model_filename = "ziggy_model.onnx"
-quant_model_filename = "model_quantized.onnx"
-data_path = "/Users/paulzanna/Github/Ziggy/data/"
-req_filename = "requirements.csv"
+model_path = "/Users/paulzanna/Github/Ziggy/model/"     # Path to model files
+model_filename = "ziggy_model.bin"                      # Model file name
+onnx_model_filename = "ziggy_model.onnx"                # ONNX model file name
+quant_model_filename = "ziggy_model_quantized.onnx"           # Quantized ONNX model file name
+data_path = "/Users/paulzanna/Github/Ziggy/data/"       # Path to data files
+req_filename = "requirements.csv"                       # Requirements file name
 
 # Define parameters
-max_seq_length = 512
+max_seq_length = 1024   # Maximum sequence length
+
+# Define input text for testing
+input_text = "Access to client data must be restricted to authorised personnel only."
 
 # Initialise tiktoken tokeniser
 tokeniser = tiktoken.get_encoding("gpt2")
 
+# Define function to tokenise and preprocess text
 def encode_text(text, max_length):
     tokens = tokeniser.encode(text, allowed_special={"<|endoftext|>"})
     if len(tokens) > max_length:
@@ -35,9 +44,6 @@ id2label = pd.Series(labels.requirement.values, index=labels.id).to_dict()
 label2id = pd.Series(labels.id.values, index=labels.requirement).to_dict()
 num_classes = len(id2label)
 
-# Input text
-input_text = "XYZ agrees to encrypt all data is stored in an encrypted format for the period of the contract."
-
 # Tokenise and preprocess
 input_ids = torch.tensor([encode_text(input_text, max_seq_length)], dtype=torch.int64)
 attention_mask = (input_ids != 0).numpy().astype(np.float32)
@@ -50,10 +56,8 @@ def softmax(logits):
 # Predict and compute probabilities
 logits = ort_session.run(None, {"input_ids": input_ids.cpu().numpy().astype(np.int64), "attention_mask": attention_mask.astype(np.float32)})[0]
 
-# Apply softmax
+# Compute probabilities and predicted label
 probabilities = softmax(logits)
-
-# Get predicted label and probability
 predicted_label = np.argmax(probabilities, axis=1)[0]
 predicted_probability = probabilities[0][predicted_label]
 
