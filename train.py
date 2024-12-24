@@ -1,9 +1,22 @@
+# Description: Train a transformer model for text classification and export it to ONNX format
+# Author: Paul Zanna
+# Last updated: 2021-09-30
+
+# Import Torch libraries
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
+
+# Load the ONNX libraries
 import onnx
 import onnxruntime as ort
+from onnxruntime.quantization import QuantType, QuantizationMode
+from onnxruntime.quantization.onnx_quantizer import ONNXQuantizer
+from onnxruntime.quantization.registry import IntegerOpsRegistry
+import onnxslim
+
+# Import the support libraries
 import tiktoken
 import numpy as np
 import pandas as pd
@@ -11,18 +24,16 @@ from datasets import load_dataset
 from sklearn.model_selection import train_test_split
 from collections import Counter
 
-import onnxslim
+# Import the Optimum libraries
 from optimum.exporters.onnx import main_export, export_models
 from optimum.onnx.graph_transformations import check_and_save_model
 from optimum.exporters.tasks import TasksManager
 from optimum.onnx.graph_transformations import check_and_save_model
-from onnxruntime.quantization import QuantType, QuantizationMode
-from onnxruntime.quantization.onnx_quantizer import ONNXQuantizer
-from onnxruntime.quantization.registry import IntegerOpsRegistry
 
 # Initialise tiktoken tokeniser
 tokeniser = tiktoken.get_encoding("gpt2")
 
+# Define the function to encode text
 def encode_text(text, max_length):
     tokens = tokeniser.encode(text, allowed_special={"<|endoftext|>"})
     if len(tokens) > max_length:
@@ -33,23 +44,23 @@ def encode_text(text, max_length):
 
 # Define hyperparameters
 vocab_size = tokeniser.n_vocab  # Tokeniser vocabulary size
-embed_dim = 384
-num_heads = 6
-num_layers = 6
-max_seq_length = 512
-learning_rate = 1e-4
-batch_size = 32
-epochs = 10
-dropout = 0.1
+embed_dim = 384                 # Embedding dimension
+num_heads = 6                   # Number of attention heads
+num_layers = 6                  # Number of transformer layers
+max_seq_length = 1024           # Maximum sequence length
+learning_rate = 1e-4            # Learning rate
+batch_size = 32                 # Batch size
+epochs = 10                     # Number of training epochs
+dropout = 0.1                   # Dropout rate
 
 # Define file paths
-model_path = "/Users/paulzanna/Github/Ziggy/model/"
-model_filename = "ziggy_model.bin"
-onnx_model_filename = "ziggy_model.onnx"
-quant_model_filename = "ziggy_model_quantized.onnx"
-data_path = "/Users/paulzanna/Github/Ziggy/data/"
-data_filename = "data.csv"
-req_filename = "requirements.csv"
+model_path = "/Users/paulzanna/Github/Ziggy/model/" # Path to save model
+model_filename = "ziggy_model.bin"                  # Model filename
+onnx_model_filename = "ziggy_model.onnx"            # ONNX model filename
+quant_model_filename = "ziggy_model_quantized.onnx" # Quantized model filename
+data_path = "/Users/paulzanna/Github/Ziggy/data/"   # Path to data
+data_filename = "data.csv"                          # Data filename
+req_filename = "requirements.csv"                   # Requirements filename
 
 # Define the quantization configuration based on provided arguments
 qmode = QuantizationMode.IntegerOps     # Quantization modes
@@ -61,23 +72,27 @@ accuracy_level = None                   # Not applicable for Q8
 weight_type = QuantType.QInt8           # Weight quantization type
 quant_type = QuantType.QUInt8           # Activation quantization type
 
+# Define the model
 class TextClassificationDataset(Dataset):
+    # Initialise the dataset
     def __init__(self, texts, labels, max_length):
         self.texts = texts
         self.labels = labels
         self.max_length = max_length
-
+    # Get length
     def __len__(self):
         return len(self.texts)
-
+    # Get item
     def __getitem__(self, idx):
         text = self.texts[idx]
         label = self.labels[idx]
         input_ids = torch.tensor(encode_text(text, self.max_length), dtype=torch.long)
         attention_mask = (input_ids != 0).long()  # Mask non-padding tokens
         return input_ids, attention_mask, torch.tensor(label, dtype=torch.long)
-    
+
+# Define the model NN architecture
 class TransformerClassifier(nn.Module):
+    # Initialise the model
     def __init__(self, vocab_size, embed_dim, num_heads, num_layers, num_classes, max_seq_length):
         super(TransformerClassifier, self).__init__()
         self.embedding = nn.Embedding(vocab_size, embed_dim)
@@ -85,7 +100,7 @@ class TransformerClassifier(nn.Module):
         encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_heads, batch_first=True, dropout=dropout)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         self.fc = nn.Linear(embed_dim, num_classes)
-
+    # Forward pass
     def forward(self, input_ids, attention_mask):
         embedded = self.embedding(input_ids) + self.positional_encoding[:, :input_ids.size(1), :]
         transformer_output = self.transformer_encoder(
@@ -94,16 +109,16 @@ class TransformerClassifier(nn.Module):
         pooled_output = transformer_output.mean(dim=1)
         logits = self.fc(pooled_output)
         return logits
-    
+
+# Train the model  
 def train_model(model, dataloader, epochs, learning_rate, device):
     model = model.to(device)
     optimiser = torch.optim.AdamW(model.parameters(), lr=learning_rate)
     loss_fn = nn.CrossEntropyLoss()
-
+    # Training loop
     for epoch in range(epochs):
         model.train()
         total_loss = 0
-        
         # Training loop
         for input_ids, attention_mask, labels in dataloader:
             input_ids, attention_mask, labels = (
@@ -117,20 +132,18 @@ def train_model(model, dataloader, epochs, learning_rate, device):
             loss.backward()
             optimiser.step()
             total_loss += loss.item()
-        
         # Print epoch loss
         avg_loss = total_loss / len(dataloader)
         print(f"Epoch {epoch+1}/{epochs}, Loss: {avg_loss:.4f}")
-
         # Evaluate model accuracy after each epoch
         evaluate_model(model, dataloader, device)
 
-
+# Evaluate model accuracy
 def evaluate_model(model, dataloader, device):
     model.eval()
     correct = 0
     total = 0
-
+    # Disable gradient calculation
     with torch.no_grad():
         for input_ids, attention_mask, labels in dataloader:
             input_ids, attention_mask, labels = (
@@ -142,7 +155,7 @@ def evaluate_model(model, dataloader, device):
             predictions = torch.argmax(outputs, dim=1)
             correct += (predictions == labels).sum().item()
             total += labels.size(0)
-
+    # Print validation accuracy
     accuracy = correct / total if total > 0 else 0
     print(f"Validation Accuracy: {accuracy:.2%}")
 
@@ -192,6 +205,7 @@ dummy_input_ids = torch.randint(0, vocab_size, (1, max_seq_length)).to(device)
 dummy_attention_mask = torch.ones(1, max_seq_length).to(device)
 dummy_input = (dummy_input_ids, dummy_input_ids)
 
+# Export model to ONNX format
 torch.onnx.export(
     model,
     dummy_input,
@@ -217,8 +231,10 @@ def predict_with_onnx(ort_session, input_ids, attention_mask):
     logits = ort_session.run(None, inputs)[0]
     return np.argmax(logits, axis=1)
 
+# Load the ONNX model
 onnx_model = onnx.load(model_path + onnx_model_filename)
 
+# Save the slimmed model
 try:
     slimmed_model = onnxslim.slim(onnx_model)
     check_and_save_model(slimmed_model, model_path + onnx_model_filename)
@@ -230,6 +246,8 @@ print(f"Slim model saved at {model_path + onnx_model_filename}")
 ### Step 5: Quantize the ONNX model
 onnxModel = onnx.load(model_path + onnx_model_filename)
 print("Quantizing the ONNX model to Int8...")
+
+# Create the ONNX quantizer
 quantizer = ONNXQuantizer(
     model=onnxModel,
     per_channel=per_channel,
@@ -248,6 +266,9 @@ quantizer = ONNXQuantizer(
     ),
 )
 
+# Quantize the model
 quantizer.quantize_model()
+
+# Save the quantized model
 check_and_save_model(quantizer.model.model, model_path + quant_model_filename)
 print(f"Quantized model saved at {model_path + quant_model_filename}")
