@@ -46,7 +46,7 @@ dropout = 0.1
 model_path = "/Users/paulzanna/Github/Ziggy/model/"
 model_filename = "ziggy_model.bin"
 onnx_model_filename = "ziggy_model.onnx"
-quant_model_filename = "model_quantized.onnx"
+quant_model_filename = "ziggy_model_quantized.onnx"
 data_path = "/Users/paulzanna/Github/Ziggy/data/"
 data_filename = "data.csv"
 req_filename = "requirements.csv"
@@ -146,6 +146,7 @@ def evaluate_model(model, dataloader, device):
     accuracy = correct / total if total > 0 else 0
     print(f"Validation Accuracy: {accuracy:.2%}")
 
+### Step 1: Load training data
 # Load labels and create mappings
 labels = pd.read_csv(data_path + req_filename)
 id2label = pd.Series(labels.requirement.values, index=labels.id).to_dict()
@@ -179,20 +180,23 @@ model = TransformerClassifier(vocab_size, embed_dim, num_heads, num_layers, num_
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using " + str(device) + " for training")
 
+### Step 2: Train and save the model
 # Train model
 train_model(model, dataloader, epochs, learning_rate, device)
 
 # Save model
 torch.save(model.state_dict(), model_path + model_filename)
 
-# Export ONNX model
+### Step 3: Export the combined model to ONNX format
 dummy_input_ids = torch.randint(0, vocab_size, (1, max_seq_length)).to(device)
 dummy_attention_mask = torch.ones(1, max_seq_length).to(device)
+dummy_input = (dummy_input_ids, dummy_input_ids)
 
 torch.onnx.export(
     model,
-    (dummy_input_ids, dummy_attention_mask),
+    dummy_input,
     model_path + onnx_model_filename,
+    export_params=True,
     opset_version=14,
     input_names=["input_ids", "attention_mask"],
     output_names=["logits"],
@@ -204,7 +208,7 @@ torch.onnx.export(
     input_types=[torch.int64, torch.int64]
 )
 
-# Verify ONNX model
+### Step 4: Verify ONNX model
 def predict_with_onnx(ort_session, input_ids, attention_mask):
     inputs = {
         "input_ids": input_ids.cpu().numpy().astype(np.int64),  # Ensure int64 type
@@ -223,7 +227,7 @@ except Exception as e:
 
 print(f"Slim model saved at {model_path + onnx_model_filename}")
 
-### Step 4: Quantize the ONNX model if requested
+### Step 5: Quantize the ONNX model
 onnxModel = onnx.load(model_path + onnx_model_filename)
 print("Quantizing the ONNX model to Int8...")
 quantizer = ONNXQuantizer(
