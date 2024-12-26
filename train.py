@@ -1,7 +1,6 @@
-# Description: Train a transformer model for multi-label text classification 
-#              and export it to ONNX format
+# Description: Train Ziggy for multi-label text classification and export it to ONNX format
 # Author: Paul Zanna
-# Date: 25/12/2024
+# Date: 24/12/2024
 
 # Import Torch libraries
 import torch
@@ -18,6 +17,7 @@ from onnxruntime.quantization.registry import IntegerOpsRegistry
 import onnxslim
 
 # Import support libraries
+import argparse
 import tiktoken
 import numpy as np
 import pandas as pd
@@ -39,6 +39,16 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 if torch.cuda.is_available():
     torch.cuda.manual_seed_all(seed)
+
+# Argument parser for command-line arguments
+parser = argparse.ArgumentParser(description="Train Ziggy for multi-label text classification and export it to ONNX format")
+parser.add_argument('--model_file', type=str, required=True, help="Path to save the model file")
+parser.add_argument('--onnx_file', type=str, required=True, help="Path to save the ONNX model file")
+parser.add_argument('--quant_file', type=str, required=True, help="Path to save the Quantized model file")
+parser.add_argument('--data_file', type=str, required=True, help="Path to the data file")
+parser.add_argument('--req_file', type=str, help="Path to the requirements file")
+
+args = parser.parse_args()
 
 # Initialise tiktoken tokeniser
 tokeniser = tiktoken.get_encoding("gpt2")
@@ -63,14 +73,7 @@ batch_size = 32                 # Batch size
 epochs = 30                     # Number of training epochs
 dropout = 0.1                   # Dropout rate
 
-# Paths
-model_path = "/Users/paulzanna/Github/Ziggy/model/" # Path to save model
-model_filename = "ziggy_model.bin"                  # Model filename
-onnx_model_filename = "ziggy_model.onnx"            # ONNX model filename
-quant_model_filename = "ziggy_model_quantized.onnx" # Quantized model filename
-data_path = "/Users/paulzanna/Github/Ziggy/data/"   # Path to data
-data_filename = "data.csv"                          # Data filename
-req_filename = "requirements.csv"                   # Requirements filename
+
 
 # Quantization-related configs
 qmode = QuantizationMode.IntegerOps     # Quantization modes
@@ -200,12 +203,12 @@ def evaluate_model(model, dataloader, device):
     print(f"Macro-F1: {100 * macro_f1:.2f}%")
 
 # Load Labels & Data
-labels_df = pd.read_csv(data_path + req_filename)
+labels_df = pd.read_csv(args.req_file)
 label_columns = labels_df['requirement'].tolist()
 num_classes = len(label_columns)
 
 # Load training data
-clause_data = pd.read_csv(data_path + data_filename)
+clause_data = pd.read_csv(args.data_file)
 
 # Instead of converting to a single label, keep the multi-label vector:
 clause_data['label_vector'] = clause_data[label_columns].values.tolist()
@@ -236,7 +239,7 @@ print("Using device:", device)
 
 # Train Model
 train_model(model, dataloader, epochs, learning_rate, device)
-torch.save(model.state_dict(), model_path + model_filename)
+torch.save(model.state_dict(), args.model_file)
 
 # Export to ONNX
 dummy_input_ids = torch.randint(0, vocab_size, (1, max_seq_length)).to(device)
@@ -246,7 +249,7 @@ dummy_attention_mask = torch.ones(1, max_seq_length).to(device)
 torch.onnx.export(
     model,
     (dummy_input_ids, dummy_attention_mask),
-    model_path + onnx_model_filename,
+    args.onnx_file,
     export_params=True,
     opset_version=14,
     input_names=["input_ids", "attention_mask"],
@@ -259,17 +262,17 @@ torch.onnx.export(
 )
 
 # Verify and Slim
-onnx_model = onnx.load(model_path + onnx_model_filename)
+onnx_model = onnx.load(args.onnx_file)
 try:
     slimmed_model = onnxslim.slim(onnx_model)
-    check_and_save_model(slimmed_model, model_path + onnx_model_filename)
+    check_and_save_model(slimmed_model, args.onnx_file)
 except Exception as e:
     print(f"Failed to slim model: {e}")
-print(f"Slim model saved at {model_path + onnx_model_filename}")
+print(f"Slim model saved at {args.onnx_file}")
 
 # Quantize
 print("Quantizing the ONNX model to Int8...")
-onnx_model = onnx.load(model_path + onnx_model_filename)
+onnx_model = onnx.load(args.onnx_file)
 
 # Model quantization parameters
 quantizer = ONNXQuantizer(
@@ -291,5 +294,5 @@ quantizer = ONNXQuantizer(
 quantizer.quantize_model()
 
 # Save the quantized model
-check_and_save_model(quantizer.model.model, model_path + quant_model_filename)
-print(f"Quantized model saved at {model_path + quant_model_filename}")
+check_and_save_model(quantizer.model.model, args.quant_file)
+print(f"Quantized model saved at {args.quant_file}")

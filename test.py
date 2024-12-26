@@ -1,6 +1,6 @@
-# Description: Test the ONNX model with a sample input text
+# Description: Test the Ziggy ONNX model with a sample input text
 # Author: Paul Zanna
-# Date: 25/12/2024
+# Date: 24/12/2024
 
 # Import libraries
 import torch
@@ -8,14 +8,14 @@ import onnxruntime as ort
 import tiktoken
 import numpy as np
 import pandas as pd
+import argparse
 
-# Define file paths
-model_path = "/Users/paulzanna/Github/Ziggy/model/"     # Path to model files
-model_filename = "ziggy_model.bin"                      # Model file name
-onnx_model_filename = "ziggy_model.onnx"                # ONNX model file name
-quant_model_filename = "ziggy_model_quantized.onnx"           # Quantized ONNX model file name
-data_path = "/Users/paulzanna/Github/Ziggy/data/"       # Path to data files
-req_filename = "requirements.csv"                       # Requirements file name
+# Argument parser for command-line arguments
+parser = argparse.ArgumentParser(description="Test Ziggy model in ONNX format")
+parser.add_argument('--quant_file', type=str, required=True, help="Path to the Quantized model file")
+parser.add_argument('--req_file', type=str, help="Path to the requirements file")
+
+args = parser.parse_args()
 
 # Define parameters
 max_seq_length = 1024   # Maximum sequence length
@@ -36,10 +36,10 @@ def encode_text(text, max_length):
     return tokens
 
 # Load ONNX model
-ort_session = ort.InferenceSession(model_path + quant_model_filename)
+ort_session = ort.InferenceSession(args.quant_file)
 
 # Load labels and create mappings
-labels = pd.read_csv(data_path + req_filename)
+labels = pd.read_csv(args.req_file)
 id2label = pd.Series(labels.requirement.values, index=labels.id).to_dict()
 label2id = pd.Series(labels.id.values, index=labels.requirement).to_dict()
 num_classes = len(id2label)
