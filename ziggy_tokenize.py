@@ -2,14 +2,16 @@
 # Author: Paul Zanna
 # Date: 27/12/2024
 
+import os
 import argparse
+import json
 import pandas as pd
 import tempfile
 from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from tokenizers.pre_tokenizers import Whitespace
-from transformers import PreTrainedTokenizerFast
+from transformers import PreTrainedTokenizerFast, AutoTokenizer
 
 def main(word_file, config_path):
     # Initialize a tokenizer
@@ -45,13 +47,38 @@ def main(word_file, config_path):
         "mask_token": "[MASK]"
     })
 
+    custom_tokenizer.model_max_length = 512
     # Save the tokenizer for future use
     print("Saving the tokenizer configuration...")
     custom_tokenizer.save_pretrained(config_path)
 
+
+    # Load the tokenizer.json
+    with open(config_path + "tokenizer.json", "r") as f:
+        tokenizer_data = json.load(f)
+
+    # Convert merges from arrays to space-separated strings
+    if "model" in tokenizer_data and "merges" in tokenizer_data["model"]:
+        tokenizer_data["model"]["merges"] = [
+            " ".join(merge) for merge in tokenizer_data["model"]["merges"]
+        ]
+
+    # Save the updated tokenizer.json
+    with open(config_path + "tokenizer.json", "w") as f:
+        json.dump(tokenizer_data, f, indent=2)
+
+    print("Merges have been successfully converted!")
+
+    print("Saving the vocabulary files...")
+    tokenizer.model.save(config_path, "ziggy")
+    # rename the vocab file
+    os.rename(config_path + "ziggy-vocab.json", config_path + "vocab.json")
+    os.rename(config_path + "ziggy-merges.txt", config_path + "merges.txt")
+
+
     # Test the tokenizer
     print("Testing the tokenizer...")
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(config_path)
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(config_path, use_fast=True)
     encoded = tokenizer.encode("This is a test sentence.")
     print(encoded)
     decoded = tokenizer.decode(encoded)

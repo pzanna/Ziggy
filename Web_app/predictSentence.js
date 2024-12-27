@@ -28,8 +28,8 @@ export async function predictSentence(sentence) {
       const knownWords = []
       for (const word of words) {
         const encoding = await tokenizer.encode(word)
-        // Check if the encoded output contains an unknown token ID
-        if (encoding.includes(tokenizer.unk_token_id)) {
+        // Check if the encoded output is a subword split
+        if (encoding.length > 1) {
           knownWords.push("[UNK]")
           unknownWords.push(word)
         } else {
@@ -40,10 +40,12 @@ export async function predictSentence(sentence) {
     }
     const cleanSentence = await replaceUnknownWords(sentence, tokenizer)
     let encoding = tokenizer.encode(cleanSentence)
-    if (encoding.length > 512) {
-      encoding = encoding[(0, 512)]
+    if (encoding.length > tokenizer.model_max_length) {
+      encoding = encoding[(0, tokenizer.model_max_length)]
     } else {
-      encoding = encoding.concat(Array(512 - encoding.length).fill(0))
+      encoding = encoding.concat(
+        Array(tokenizer.model_max_length - encoding.length).fill(0)
+      )
     }
 
     const inputIds = new ort.Tensor(
