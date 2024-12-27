@@ -1,11 +1,11 @@
 clause,"ENC-1","ENC-2","HAN-1","HAN-2","HAN-3","IAM-1","IAM-2"
-"The service provider must ensure that all data is encrypted at rest",1,0,0,0,0,0,0
-"The service provider must ensure that all data is encrypted in transit",0,1,0,0,0,0,0
-"The service provider must ensure that data is destroyed when no longer required",0,0,1,0,0,0,0
-"The service provider must ensure that data is destroyed when requested by the client",0,0,0,1,0,0,0
-"The service provider must ensure that data is handled in accordance with data privacy laws",0,0,0,0,1,0,0
-"The service provider must ensure that access to data is restricted to authorised personnel",0,0,0,0,0,1,0
-"The service provider must ensure that access to data is restricted to only those with a legitimate business need",0,0,0,0,0,0,1
+"The service provider must ensure that all data is encrypted at rest.",1,0,0,0,0,0,0
+"The service provider must ensure that all data is encrypted in transit.",0,1,0,0,0,0,0
+"The service provider must ensure that data is destroyed when no longer required.",0,0,1,0,0,0,0
+"The service provider must ensure that data is destroyed when requested by the client.",0,0,0,1,0,0,0
+"The service provider must ensure that data is handled in accordance with data privacy laws.",0,0,0,0,1,0,0
+"The service provider must ensure that access to data is restricted to authorised personnel.",0,0,0,0,0,1,0
+"The service provider must ensure that access to data is restricted to only those with a legitimate business need.",0,0,0,0,0,0,1
 "The Service Provider shall encrypt all client data stored at rest using encryption standards that meet or exceed AES-256.",1,0,0,0,0,0,0
 "All client data stored at rest, including database records, file storage, backups, and archive systems, must be encrypted at all times.",1,0,0,0,0,0,0
 "The Service Provider shall manage encryption keys securely through an established key management system,ensuring keys are stored separately from the encrypted data and accessible only to authorised personnel.",1,0,0,0,0,0,0

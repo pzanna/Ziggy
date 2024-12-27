@@ -1,6 +1,6 @@
-# Description: Train Ziggy for multi-label text classification and export it to ONNX format
+# Description: Train Ziggy for multi-label text classification and export it to ONNX format - Custom Tokenizer
 # Author: Paul Zanna
-# Date: 24/12/2024
+# Date: 27/12/2024
 
 # Import Torch libraries
 import torch
@@ -18,7 +18,7 @@ import onnxslim
 
 # Import support libraries
 import argparse
-import tiktoken
+from transformers import PreTrainedTokenizerFast, AutoTokenizer
 import numpy as np
 import pandas as pd
 import random
@@ -46,16 +46,16 @@ parser.add_argument('--model_file', type=str, required=True, help="Path to save 
 parser.add_argument('--onnx_file', type=str, required=True, help="Path to save the ONNX model file")
 parser.add_argument('--quant_file', type=str, required=True, help="Path to save the Quantized model file")
 parser.add_argument('--data_file', type=str, required=True, help="Path to the data file")
+parser.add_argument('--vocab_path', type=str, required=True, help="Path to the vocab configuration files")
 parser.add_argument('--req_file', type=str, help="Path to the requirements file")
 
 args = parser.parse_args()
 
-# Initialise tiktoken tokeniser
-tokeniser = tiktoken.get_encoding("gpt2")
+tokenizer = PreTrainedTokenizerFast.from_pretrained(args.vocab_path, use_fast=True)
 
 # Define function to tokenise and preprocess text
 def encode_text(text, max_length):
-    tokens = tokeniser.encode(text, allowed_special={"<|endoftext|>"})
+    tokens = tokenizer.encode(text)
     if len(tokens) > max_length:
         tokens = tokens[:max_length]
     else:
@@ -63,15 +63,15 @@ def encode_text(text, max_length):
     return tokens
 
 # Hyperparameters
-vocab_size = tokeniser.n_vocab  # Tokeniser vocabulary size
-embed_dim = 384                 # Embedding dimension
-num_heads = 6                   # Number of attention heads
-num_layers = 6                  # Number of transformer layers
-max_seq_length = 512            # Maximum sequence length
-learning_rate = 1e-4            # Learning rate
-batch_size = 32                 # Batch size
-epochs = 20                     # Number of training epochs
-dropout = 0.1                   # Dropout rate
+vocab_size = tokenizer.vocab_size   # Tokeniser vocabulary size
+embed_dim = 384                     # Embedding dimension
+num_heads = 6                       # Number of attention heads
+num_layers = 6                      # Number of transformer layers
+max_seq_length = 512               # Maximum sequence length
+learning_rate = 1e-4                # Learning rate
+batch_size = 32                     # Batch size
+epochs = 20                         # Number of training epochs
+dropout = 0.1                       # Dropout rate
 
 # Quantization-related configs
 qmode = QuantizationMode.IntegerOps     # Quantization modes
@@ -98,7 +98,7 @@ class TextClassificationDataset(Dataset):
         label_vector = self.labels[idx]  # e.g. [0, 1, 1, 0, ...]
         input_ids = torch.tensor(encode_text(text, self.max_length), dtype=torch.long)
         attention_mask = (input_ids != 0).long()
-        
+
         # Convert label vector to float for BCEWithLogitsLoss
         label_tensor = torch.tensor(label_vector, dtype=torch.float)
         return input_ids, attention_mask, label_tensor

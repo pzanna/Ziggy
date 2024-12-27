@@ -7,17 +7,22 @@ import argparse
 import json
 import pandas as pd
 import tempfile
+from tokenizers.pre_tokenizers import ByteLevel as ByteLevelPreTokenizer
+from tokenizers.decoders import ByteLevel, WordPiece
+from tokenizers.models import BPE, WordLevel
 from tokenizers import Tokenizer
-from tokenizers.models import BPE
-from tokenizers.trainers import BpeTrainer
+from tokenizers.trainers import BpeTrainer, WordLevelTrainer
 from tokenizers.pre_tokenizers import Whitespace
 from transformers import PreTrainedTokenizerFast, AutoTokenizer
 
 def main(word_file, config_path):
     # Initialize a tokenizer
-    tokenizer = Tokenizer(BPE())
+    tokenizer = Tokenizer(WordLevel())
+    # tokenizer.pre_tokenizer = ByteLevelPreTokenizer()
     tokenizer.pre_tokenizer = Whitespace()
-    trainer = BpeTrainer(special_tokens=["[PAD]", "[CLS]", "[SEP]", "[UNK]", "[MASK]"])
+    # tokenizer.decoder = ByteLevel()
+    tokenizer.decoder = WordPiece()
+    trainer = WordLevelTrainer(special_tokens=["[PAD]", "[CLS]", "[SEP]", "[UNK]", "[MASK]"], show_progress=True)
 
     # Load training data
     print("Loading training data...")
@@ -29,13 +34,29 @@ def main(word_file, config_path):
         temp_file.write(' '.join(clauses))
         temp_file_path = temp_file.name
 
+    print(temp_file_path)
+
     # Train the tokenizer
     print("Training the tokenizer...")
     tokenizer.train([temp_file_path], trainer)
+    os.remove(temp_file_path)
 
     # Save the tokenizer
     print("Saving the tokenizer...")
     tokenizer.save(config_path + "custom_tokenizer.json")
+
+    # Load the custom tokenizer json file as a json object
+    with open(config_path + "custom_tokenizer.json", "r") as f:
+        tokenizer_config = json.load(f)
+
+    # Set the unknown token
+    tokenizer_config["model"]["unk_token"] = "[UNK]"
+
+    # Save the updated configuration
+    with open(config_path + "custom_tokenizer.json", "w") as f:
+        json.dump(tokenizer_config, f, indent=2)
+
+    print("Updated tokenizer.json with unk_token.")
 
     # Load the custom tokenizer
     custom_tokenizer = PreTrainedTokenizerFast(tokenizer_file=config_path + "custom_tokenizer.json")
@@ -52,34 +73,23 @@ def main(word_file, config_path):
     print("Saving the tokenizer configuration...")
     custom_tokenizer.save_pretrained(config_path)
 
-
     # Load the tokenizer.json
     with open(config_path + "tokenizer.json", "r") as f:
         tokenizer_data = json.load(f)
-
-    # Convert merges from arrays to space-separated strings
-    if "model" in tokenizer_data and "merges" in tokenizer_data["model"]:
-        tokenizer_data["model"]["merges"] = [
-            " ".join(merge) for merge in tokenizer_data["model"]["merges"]
-        ]
 
     # Save the updated tokenizer.json
     with open(config_path + "tokenizer.json", "w") as f:
         json.dump(tokenizer_data, f, indent=2)
 
-    print("Merges have been successfully converted!")
-
     print("Saving the vocabulary files...")
     tokenizer.model.save(config_path, "ziggy")
     # rename the vocab file
     os.rename(config_path + "ziggy-vocab.json", config_path + "vocab.json")
-    os.rename(config_path + "ziggy-merges.txt", config_path + "merges.txt")
-
-
+   
     # Test the tokenizer
     print("Testing the tokenizer...")
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config_path, use_fast=True)
-    encoded = tokenizer.encode("This is a test sentence.")
+    encoded = tokenizer.encode("The service provider must ensure that all data is encrypted at rest.")
     print(encoded)
     decoded = tokenizer.decode(encoded)
     print(decoded)
