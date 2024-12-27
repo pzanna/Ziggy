@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="module" src="./docFormat.js"></script>
+    <style>
+      table {
+        width: 100%;
+      }
+      td {
+        text-align: left;
+        padding: 10px 20px;
+      }
+      .logging {
+        font-size: 1.2rem;
+        font-weight: bold;
+      }
+    </style>
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Contract Separation Tester</h1>
+    <table>
+      <tr>
+        <td><input type="file" id="input-file" accept=".txt, .pdf" /></td>
+      </tr>
+      <tr>
+        <td><button id="evaluate-button">Evaluate</button></td>
+      </tr>
+      <tr>
+        <td>
+          <input
+            type="checkbox"
+            id="numbering"
+            name="number"
+            value="clause"
+            checked
+          />
+          Remover numbering?
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <div class="logging" id="logging"></div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <div id="clause-list"></div>
+        </td>
+      </tr>
+    </table>
+    <script type="module">
+      import { clauseFormat } from "./docFormat.js"
+
+      document
+        .getElementById("evaluate-button")
+        .addEventListener("click", createClauses)
+
+      let clauseList = ""
+
+      async function createClauses() {
+        document.getElementById("logging").innerHTML = ""
+        clauseList = ""
+        document.getElementById("clause-list").innerHTML = ""
+        const fileInput = document.getElementById("input-file")
+        if (fileInput.files.length === 0) {
+          console.error("No file selected.")
+        } else {
+          const file = fileInput.files[0]
+          const fileExtension = file.name.split(".").pop().toLowerCase()
+
+          if (fileExtension === "txt") {
+            const reader = new FileReader()
+
+            reader.onload = async function (e) {
+              const text = e.target.result
+              const clauseArray = clauseFormat(text, numbering.checked)
+              for (let i = 0; i < clauseArray.length; i++) {
+                clauseList += clauseArray[i].toString() + "<br><br>"
+              }
+              document.getElementById("clause-list").innerHTML = clauseList
+              document.getElementById("logging").innerHTML =
+                clauseArray.length + " clauses found."
+            }
+            reader.onerror = function () {
+              console.error("File could not be read.")
+            }
+            reader.readAsText(file)
+          } else if (fileExtension === "pdf") {
+            console.error("Can't handle PDF files yet.")
+          } else {
+            console.error("Unsupported file type.")
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

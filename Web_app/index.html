@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <script type="module" src="./predictSentence.js"></script>
+    <script type="module" src="./docFormat.js"></script>
+    <link rel="stylesheet" href="./style.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>AI Contract Review</h1>
+    <table class="button-table">
+      <tr>
+        <td>
+          <p>
+            This tool will help you review a contract by identifying the type of
+            clauses in the document. To get started, upload a contract file to
+            review.
+          </p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="input">
+          <input type="file" id="input-file" accept=".txt, .pdf" />
+        </td>
+
+        <td></td>
+      </tr>
+      <tr>
+        <td class="button">
+          <button onclick="evaluateSentence()">Evaluate</button>
+        </td>
+      </tr>
+    </table>
+    <br />
+    <div id="current-clause"></div>
+
+    <!-- Label Sections for Results -->
+    <div id="action-results" class="label-section">
+      <div class="label-header" onclick="toggleClauses(this)">
+        Label: Action ▼
+      </div>
+      <div class="clauses-container"></div>
+    </div>
+
+    <div id="description-results" class="label-section">
+      <div class="label-header" onclick="toggleClauses(this)">
+        Label: Description ▼
+      </div>
+      <div class="clauses-container"></div>
+    </div>
+
+    <div id="dialogue-results" class="label-section">
+      <div class="label-header" onclick="toggleClauses(this)">
+        Label: Dialogue ▼
+      </div>
+      <div class="clauses-container"></div>
+    </div>
+
+    <script type="module">
+      import { predictSentence } from "./predictSentence.js"
+      import { clauseFormat } from "./docFormat.js"
+
+      window.unknownWords = []
+      let finalOutcome = []
+      const highestLabel = {}
+
+      function toggleClauses(header) {
+        const container = header.nextElementSibling
+        container.style.display =
+          container.style.display === "none" ? "block" : "none"
+        header.textContent =
+          container.style.display === "block"
+            ? header.textContent.replace("▲", "▼")
+            : header.textContent.replace("▼", "▲")
+      }
+
+      function giveFeedback(button, type) {
+        const clauseText = button.closest(".clause").querySelector("p") // Selects the clause text
+
+        if (type === "like") {
+          button.classList.add("liked")
+          button.textContent = "👍"
+          clauseText.classList.add("liked-text") // Apply green text color
+        } else if (type === "dislike") {
+          button.classList.add("disliked")
+          button.textContent = "👎"
+          clauseText.classList.add("disliked-text") // Apply red text color
+        }
+
+        // Disable both buttons once feedback is given
+        button.parentNode
+          .querySelectorAll("button")
+          .forEach((btn) => (btn.disabled = true))
+      }
+
+      // Make the functions globally accessible
+      window.toggleClauses = toggleClauses
+      window.giveFeedback = giveFeedback
+
+      async function evaluateSentence() {
+        const fileInput = document.getElementById("input-file")
+        if (fileInput.files.length === 0) {
+          console.error("No file selected.")
+        } else {
+          const file = fileInput.files[0]
+          const fileExtension = file.name.split(".").pop().toLowerCase()
+
+          if (fileExtension === "txt") {
+            const reader = new FileReader()
+
+            reader.onload = async function (e) {
+              const text = e.target.result
+              const clauseArray = clauseFormat(text, true) // Remove numbering
+              for (let i = 0; i < clauseArray.length; i++) {
+                const sentence = clauseArray[i]
+                const outcome = await predictClause(sentence)
+                finalOutcome.push({ i, sentence, outcome })
+                document.getElementById("current-clause").innerHTML =
+                  "Reviewing clause: " + i
+                await new Promise((resolve) => setTimeout(resolve, 0))
+              }
+              document.getElementById("current-clause").innerHTML =
+                "Reviewing clause: Done"
+              finalOutcome.forEach((finalOutcome) => {
+                const currentI = finalOutcome.i
+                const currentSentence = finalOutcome.sentence
+
+                finalOutcome.outcome.forEach(({ label, probability }) => {
+                  if (!highestLabel[label]) {
+                    highestLabel[label] = []
+                  }
+                  highestLabel[label].push({
+                    i: currentI,
+                    sentence: currentSentence,
+                    probability,
+                  })
+                  highestLabel[label].sort(
+                    (a, b) => b.probability - a.probability
+                  )
+                  if (highestLabel[label].length > 3) {
+                    highestLabel[label].pop()
+                  }
+                })
+              })
+
+              const outputTopScores = (label) => {
+                const container = document.querySelector(
+                  `#${label.toLowerCase()}-results .clauses-container`
+                )
+                container.innerHTML = ""
+                highestLabel[label].forEach((entry) => {
+                  const clauseDiv = document.createElement("div")
+                  clauseDiv.classList.add("clause")
+                  clauseDiv.innerHTML = `
+                    <p>${entry.sentence}</p>
+                    <p class="probability">Probability: ${(
+                      entry.probability * 100
+                    ).toFixed(2)}%</p>
+                    <div class="feedback-buttons">
+                      <button class="like" onclick="giveFeedback(this, 'like')">👍</button>
+                      <button class="dislike" onclick="giveFeedback(this, 'dislike')">👎</button>
+                    </div>
+                  `
+                  container.appendChild(clauseDiv)
+                })
+              }
+
+              outputTopScores("Action")
+              outputTopScores("Description")
+              outputTopScores("Dialogue")
+
+              // Print the unknown words
+              const noDupUnknownWords = [...new Set(unknownWords)]
+              let unknownWordList = ""
+              for (let i = 0; i < noDupUnknownWords.length; i++) {
+                unknownWordList += noDupUnknownWords[i].toString()
+                if (unknownWordList.slice(-1) !== ",") {
+                  unknownWordList += ","
+                }
+              }
+              console.log(noDupUnknownWords.length)
+              console.log(" unkown tokens:\n", unknownWordList)
+            }
+
+            reader.onerror = function () {
+              console.error("File could not be read.")
+            }
+            reader.readAsText(file)
+          } else if (fileExtension === "pdf") {
+            console.error("Can't handle PDF files yet.")
+          } else {
+            console.error("Unsupported file type.")
+          }
+        }
+      }
+
+      async function predictClause(sentence) {
+        try {
+          return await predictSentence(sentence)
+        } catch (e) {
+          console.error("Error during prediction:", e)
+        }
+      }
+
+      window.evaluateSentence = evaluateSentence
+    </script>
+  </body>
+</html>
