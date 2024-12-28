@@ -13,10 +13,15 @@ python ziggy_train.py --model_file <name_of_model> --onnx_file <name_of_onnx_mod
 ## Command line arguments
 
 `--model_file` Name and path to save the model file.
+
 `--onnx_file` Name and path to save the ONNX model file.
+
 `--quant_file` Name and path to save the Quantized model file.
+
 `--data_file` Name and path to the data file.
+
 `--vocab_path` Path to the vocab configuration files.
+
 `--req_file` Name and path to the requirements file.
 
 ## Steps performed

@@ -14,7 +14,9 @@ python ziggy_test.py --quant_file <path_to_quantized_model> --req_file <path_to_
 ## Command line arguments
 
 `--quant_file` Path to the quantized model file.
+
 `--req_file` Path to the requirements file (CSV) containing label mappings.
+
 `--vocab_path` Path to the tokenizer configuration files.
 
 ## Steps performed

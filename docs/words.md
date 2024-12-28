@@ -7,13 +7,14 @@ Processes a text file to extract, clean, and save a list of words.
 ## Usage
 
 ```
-python words.py --text_file <name_of_quantized_model> ----text_file <name_of_requirements_file>
+python words.py --text_file <name_of_quantized_model> --word_file <name_of_requirements_file>
 ```
 
 ## Command line arguments
 
 `--text_file` Name and path to the input text file.
-`--text_file` Name and path to the output word file.
+
+`--word_file` Name and path to the output word file.
 
 ## Steps Performed
 

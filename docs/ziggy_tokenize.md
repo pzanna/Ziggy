@@ -13,6 +13,7 @@ python ziggy_tokenize.py --word_file <path_to_word_file> --config_path <path_to_
 ## Command line arguments
 
 `--word_file` Path to the data file containing your training words.
+
 `--config_path` Path to save the tokenizer configuration file.
 
 ## Steps performed
