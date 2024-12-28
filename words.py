@@ -2,7 +2,6 @@
 # Author: Paul Zanna
 # Date: 28/12/2024
 
-import os
 import argparse
 import re
 
