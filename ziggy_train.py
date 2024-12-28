@@ -2,36 +2,114 @@
 # Author: Paul Zanna
 # Date: 27/12/2024
 
-# Import Torch libraries
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 
-# Import ONNX libraries
 import onnx
-import onnxruntime as ort
 from onnxruntime.quantization import QuantType, QuantizationMode
 from onnxruntime.quantization.onnx_quantizer import ONNXQuantizer
 from onnxruntime.quantization.registry import IntegerOpsRegistry
 import onnxslim
 
-# Import support libraries
 import argparse
 from transformers import PreTrainedTokenizerFast
 import numpy as np
 import pandas as pd
 import random
-from datasets import load_dataset
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
-from collections import Counter
 
-# Import Optimum libraries
-from optimum.exporters.onnx import main_export, export_models
 from optimum.onnx.graph_transformations import check_and_save_model
-from optimum.exporters.tasks import TasksManager
 
+# Define function to tokenise and preprocess text
+def encode_text(text, max_length, tokenizer):
+    tokens = tokenizer.encode(text.lower())
+    if len(tokens) > max_length:
+        tokens = tokens[:max_length]
+    else:
+        tokens += [0] * (max_length - len(tokens))
+    return tokens
+
+# Main training Function
+def train_model(model, dataloader, epochs, learning_rate, device):
+    model = model.to(device)
+    
+    # Use BCEWithLogitsLoss for multi-label classification
+    loss_fn = nn.BCEWithLogitsLoss()
+    optimiser = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    
+    # Training loop
+    for epoch in range(epochs):
+        model.train()
+        total_loss = 0.0
+        
+        for input_ids, attention_mask, labels in dataloader:
+            input_ids = input_ids.to(device)
+            attention_mask = attention_mask.to(device)
+            labels = labels.to(device)
+
+            optimiser.zero_grad()
+            outputs = model(input_ids, attention_mask)
+            loss = loss_fn(outputs, labels)
+            loss.backward()
+            optimiser.step()
+            total_loss += loss.item()
+
+        # Print average loss after each epoch
+        avg_loss = total_loss / len(dataloader)
+        print(f"Epoch {epoch+1}/{epochs}, Loss: {avg_loss:.4f}")
+
+        # Evaluate after each epoch
+        evaluate_model(model, dataloader, device)
+
+# Evaluation Function
+def evaluate_model(model, dataloader, device):
+    model.eval()
+    all_preds = []
+    all_labels = []
+
+    # Disable gradient computation
+    with torch.no_grad():
+        for input_ids, attention_mask, labels in dataloader:
+            input_ids = input_ids.to(device)
+            attention_mask = attention_mask.to(device)
+            labels = labels.to(device)
+            outputs = model(input_ids, attention_mask)
+            probs = torch.sigmoid(outputs)
+            preds = (probs > 0.5).float()
+            # Store for metric calculation
+            all_preds.append(preds.cpu())
+            all_labels.append(labels.cpu())
+
+    # Concatenate predictions and labels from all batches
+    all_preds = torch.cat(all_preds, dim=0).numpy()
+    all_labels = torch.cat(all_labels, dim=0).numpy()
+
+    # Compute micro-F1
+    micro_f1 = f1_score(all_labels, all_preds, average="micro")
+    macro_f1 = f1_score(all_labels, all_preds, average="macro")
+
+    # Optionally compute exact-match accuracy
+    exact_matches = np.all(all_preds == all_labels, axis=1)
+    exact_match_accuracy = np.mean(exact_matches)
+
+    # Print evaluation metrics
+    print(f"Exact Match Accuracy: {100 * exact_match_accuracy:.2f}%")
+    print(f"Micro-F1: {100 * micro_f1:.2f}%")
+    print(f"Macro-F1: {100 * macro_f1:.2f}%")
+
+# Count model parameters
+def count_parameters(model):
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    non_trainable_params = total_params - trainable_params
+    return {
+        "Total Parameters": total_params,
+        "Trainable Parameters": trainable_params,
+        "Non-Trainable Parameters": non_trainable_params
+    }
+    
 def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
     # Set random seed for reproducibility
     seed = 42
@@ -42,15 +120,6 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
         torch.cuda.manual_seed_all(seed)
 
     tokenizer = PreTrainedTokenizerFast.from_pretrained(vocab_path, use_fast=True)
-
-    # Define function to tokenise and preprocess text
-    def encode_text(text, max_length):
-        tokens = tokenizer.encode(text.lower())
-        if len(tokens) > max_length:
-            tokens = tokens[:max_length]
-        else:
-            tokens += [0] * (max_length - len(tokens))
-        return tokens
 
     # Hyperparameters
     vocab_size = tokenizer.vocab_size   # Tokeniser vocabulary size
@@ -67,13 +136,10 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
     qmode = QuantizationMode.IntegerOps     # Quantization modes
     per_channel = True                      # Enable per-channel quantization
     reduce_range = True                     # Use reduced range for 7-bit quantization
-    block_size = None                       # Not used for Q8 but available for other modes
-    is_symmetric = True                     # Symmetric quantization
-    accuracy_level = None                   # Not applicable for Q8
     weight_type = QuantType.QInt8           # Weight quantization type
     quant_type = QuantType.QUInt8           # Activation quantization type
 
-    # Dataset Definition
+    # Custom Dataset Class
     class TextClassificationDataset(Dataset):
         def __init__(self, texts, labels, max_length):
             self.texts = texts
@@ -86,7 +152,7 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
         def __getitem__(self, idx):
             text = self.texts[idx]
             label_vector = self.labels[idx]  # e.g. [0, 1, 1, 0, ...]
-            input_ids = torch.tensor(encode_text(text, self.max_length), dtype=torch.long)
+            input_ids = torch.tensor(encode_text(text, self.max_length, tokenizer), dtype=torch.long)
             # Generate attention mask
             attention_mask = (input_ids != 0).float()  # Aligns with the padding in input_ids
 
@@ -109,9 +175,8 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
             self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
             self.fc = nn.Linear(embed_dim, num_classes)
 
+        # Forward pass
         def forward(self, input_ids, attention_mask):
-            # input_ids: (batch_size, seq_len)
-            # attention_mask: (batch_size, seq_len)
             embedded = self.embedding(input_ids) + self.positional_encoding[:, :input_ids.size(1), :]
             transformer_output = self.transformer_encoder(
                 embedded, src_key_padding_mask=~attention_mask.bool()
@@ -121,82 +186,10 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
             logits = self.fc(pooled_output)
             return logits
 
-    # Training Function
-    def train_model(model, dataloader, epochs, learning_rate, device):
-        model = model.to(device)
-        
-        # Use BCEWithLogitsLoss for multi-label classification
-        loss_fn = nn.BCEWithLogitsLoss()
-        optimiser = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-        
-        # Training loop
-        for epoch in range(epochs):
-            model.train()
-            total_loss = 0.0
-            
-            for input_ids, attention_mask, labels in dataloader:
-                input_ids = input_ids.to(device)
-                attention_mask = attention_mask.to(device)
-                labels = labels.to(device)
-
-                optimiser.zero_grad()
-                outputs = model(input_ids, attention_mask)
-                loss = loss_fn(outputs, labels)
-                loss.backward()
-                optimiser.step()
-                total_loss += loss.item()
-
-            # Print average loss after each epoch
-            avg_loss = total_loss / len(dataloader)
-            print(f"Epoch {epoch+1}/{epochs}, Loss: {avg_loss:.4f}")
-
-            # Evaluate after each epoch
-            evaluate_model(model, dataloader, device)
-
-    # Evaluation Function
-    def evaluate_model(model, dataloader, device):
-        model.eval()
-        all_preds = []
-        all_labels = []
-
-        # Disable gradient computation
-        with torch.no_grad():
-            for input_ids, attention_mask, labels in dataloader:
-                input_ids = input_ids.to(device)
-                attention_mask = attention_mask.to(device)
-                labels = labels.to(device)
-
-                outputs = model(input_ids, attention_mask)
-                probs = torch.sigmoid(outputs)
-                preds = (probs > 0.5).float()
-
-                # Store for metric calculation
-                all_preds.append(preds.cpu())
-                all_labels.append(labels.cpu())
-
-        # Concatenate predictions and labels from all batches
-        all_preds = torch.cat(all_preds, dim=0).numpy()
-        all_labels = torch.cat(all_labels, dim=0).numpy()
-
-        # Compute micro-F1
-        micro_f1 = f1_score(all_labels, all_preds, average="micro")
-        macro_f1 = f1_score(all_labels, all_preds, average="macro")
-
-        # Optionally compute exact-match accuracy
-        exact_matches = np.all(all_preds == all_labels, axis=1)
-        exact_match_accuracy = np.mean(exact_matches)
-
-        # Print evaluation metrics
-        print(f"Exact Match Accuracy: {100 * exact_match_accuracy:.2f}%")
-        print(f"Micro-F1: {100 * micro_f1:.2f}%")
-        print(f"Macro-F1: {100 * macro_f1:.2f}%")
-
-    # Load Labels & Data
     labels_df = pd.read_csv(req_file)
     label_columns = labels_df['requirement'].tolist()
     num_classes = len(label_columns)
 
-    # Load training data
     clause_data = pd.read_csv(data_file)
 
     # Instead of converting to a single label, keep the multi-label vector:
@@ -230,7 +223,6 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device:", device)
 
-    # Train Model
     train_model(model, dataloader, epochs, learning_rate, device)
     torch.save(model.state_dict(), model_file)
 
@@ -238,7 +230,7 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
     dummy_input_ids = torch.randint(0, vocab_size, (1, max_seq_length)).to(device)
     dummy_attention_mask = torch.ones(1, max_seq_length).to(device)
 
-    # Model export parameters
+    # ONNX model export parameters
     torch.onnx.export(
         model,
         (dummy_input_ids, dummy_attention_mask),
@@ -254,20 +246,20 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
         }
     )
 
-    # Verify and Slim
+    # Slim the ONNX model
     onnx_model = onnx.load(onnx_file)
+
     try:
         slimmed_model = onnxslim.slim(onnx_model)
         check_and_save_model(slimmed_model, onnx_file)
     except Exception as e:
         print(f"Failed to slim model: {e}")
-    print(f"Slim model saved at {onnx_file}")
 
-    # Quantize
+    print(f"Slim model saved at {onnx_file}")
     print("Quantizing the ONNX model to Int8...")
     onnx_model = onnx.load(onnx_file)
 
-    # Model quantization parameters
+    # ONNX model quantization parameters
     quantizer = ONNXQuantizer(
         model=onnx_model,
         per_channel=per_channel,
@@ -283,20 +275,8 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
         extra_options=dict(EnableSubgraph=True, MatMulConstBOnly=True),
     )
 
-    def count_parameters(model):
-        total_params = sum(p.numel() for p in model.parameters())
-        trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        non_trainable_params = total_params - trainable_params
-        return {
-            "Total Parameters": total_params,
-            "Trainable Parameters": trainable_params,
-            "Non-Trainable Parameters": non_trainable_params
-        }
-
     # Quantize the model
     quantizer.quantize_model()
-
-    # Save the quantized model
     check_and_save_model(quantizer.model.model, quant_file)
     print(f"Quantized model saved at {quant_file}")
 
@@ -314,7 +294,6 @@ if __name__ == "__main__":
     parser.add_argument('--data_file', type=str, required=True, help="Path to the data file")
     parser.add_argument('--vocab_path', type=str, required=True, help="Path to the vocab configuration files")
     parser.add_argument('--req_file', type=str, help="Path to the requirements file")
-
     args = parser.parse_args()
 
     main(args.model_file, args.onnx_file, args.quant_file, args.data_file, args.vocab_path, args.req_file)

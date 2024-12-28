@@ -10,55 +10,37 @@ import numpy as np
 import pandas as pd
 import argparse
 
+def encode_text(text, tokenizer, max_length):
+    tokens = tokenizer.encode(text.lower())
+    return tokens[:max_length] + [0] * (max_length - len(tokens))
+
+def softmax(logits):
+    exp_logits = np.exp(logits - np.max(logits))
+    return exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
+
 def main(quant_file, req_file, vocab_path):
-    # Define parameters
-    max_seq_length = 512   # Maximum sequence length
-
-    # Define input text for testing
+    max_seq_length = 512
     input_text = "Access to client data must be restricted to authorised personnel only."
-
-    # Initialise tiktoken tokeniser
+    
     tokenizer = PreTrainedTokenizerFast.from_pretrained(vocab_path, use_fast=True)
-
-    # Define function to tokenise and preprocess text
-    def encode_text(text, max_length):
-        tokens = tokenizer.encode(text.lower())
-        if len(tokens) > max_length:
-            tokens = tokens[:max_length]  # Truncate
-        else:
-            tokens += [0] * (max_length - len(tokens))  # Pad
-        return tokens
-
-    # Load ONNX model
     ort_session = ort.InferenceSession(quant_file)
+    
     print("Input Metadata:")
     for input_meta in ort_session.get_inputs():
         print(f"Name: {input_meta.name}, Type: {input_meta.type}, Shape: {input_meta.shape}")
 
-    # Load labels and create mappings
     labels = pd.read_csv(req_file)
     id2label = pd.Series(labels.requirement.values, index=labels.id).to_dict()
-    label2id = pd.Series(labels.id.values, index=labels.requirement).to_dict()
     num_classes = len(id2label)
 
-    # Tokenise and preprocess
-    input_ids = torch.tensor([encode_text(input_text, max_seq_length)], dtype=torch.long)
+    input_ids = torch.tensor([encode_text(input_text, tokenizer, max_seq_length)], dtype=torch.long)
     attention_mask = (input_ids != 0).numpy().astype(np.float32)
 
-    # Apply softmax to logits to compute probabilities
-    def softmax(logits):
-        exp_logits = np.exp(logits - np.max(logits))  # Subtract max for numerical stability
-        return exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
-
-    # Predict and compute probabilities
-    logits = ort_session.run(None, {"input_ids": input_ids.cpu().numpy().astype(np.int64), "attention_mask": attention_mask.astype(np.float32)})[0]
-
-    # Compute probabilities and predicted label
+    logits = ort_session.run(None, {"input_ids": input_ids.cpu().numpy().astype(np.int64), "attention_mask": attention_mask})[0]
     probabilities = softmax(logits)
     predicted_label = np.argmax(probabilities, axis=1)[0]
     predicted_probability = probabilities[0][predicted_label]
 
-    # Print the id2label mapping of the predicted label
     print(f"Predicted Label: {id2label[predicted_label]} ({predicted_label})")
     print(f"Probability: {predicted_probability * 100:.2f}%")
     print(f"Probabilities: {probabilities[0]}")

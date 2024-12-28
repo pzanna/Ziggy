@@ -1,57 +1,36 @@
-# Description: Create a custom tokenizer using the Hugging Face tokenizers library
-# Author: Paul Zanna
-# Date: 27/12/2024
-
 import os
 import argparse
 import json
-import pandas as pd
-import tempfile
-from tokenizers.pre_tokenizers import ByteLevel as ByteLevelPreTokenizer
-from tokenizers.decoders import ByteLevel, WordPiece
-from tokenizers.models import BPE, WordLevel
-from tokenizers import Tokenizer
-from tokenizers.trainers import BpeTrainer, WordLevelTrainer
-from tokenizers.pre_tokenizers import Whitespace
-from transformers import PreTrainedTokenizerFast, AutoTokenizer
+from tokenizers import Tokenizer, pre_tokenizers, decoders, models, trainers
+from transformers import PreTrainedTokenizerFast
 
 def main(word_file, config_path):
     # Initialize a tokenizer
-    tokenizer = Tokenizer(WordLevel())
-    # tokenizer.pre_tokenizer = ByteLevelPreTokenizer()
-    tokenizer.pre_tokenizer = Whitespace()
-    # tokenizer.decoder = ByteLevel()
-    tokenizer.decoder = WordPiece()
-    trainer = WordLevelTrainer(special_tokens=["[PAD]", "[CLS]", "[SEP]", "[UNK]", "[MASK]"], show_progress=True)
+    tokenizer = Tokenizer(models.WordLevel(unk_token="[UNK]"))
+    tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
+    tokenizer.decoder = decoders.WordPiece()
+    trainer = trainers.WordLevelTrainer(special_tokens=["[PAD]", "[CLS]", "[SEP]", "[UNK]", "[MASK]"], show_progress=True)
 
-    # Load training data
-    print("Loading word file...")
-
-    # Train the tokenizer
-    print("Training the tokenizer...")
+    # Load and train the tokenizer
+    print("Loading word file and training the tokenizer...")
     tokenizer.train([word_file], trainer)
-
-    print("\nTokenizer contains {} tokens.".format(tokenizer.get_vocab_size()))
+    print(f"\nTokenizer contains {tokenizer.get_vocab_size()} tokens.")
 
     # Save the tokenizer
+    tokenizer_path = os.path.join(config_path, "custom_tokenizer.json")
     print("Saving the tokenizer...")
-    tokenizer.save(config_path + "custom_tokenizer.json")
+    tokenizer.save(tokenizer_path)
 
-    # Load the custom tokenizer json file as a json object
-    with open(config_path + "custom_tokenizer.json", "r") as f:
+    # Update the tokenizer configuration
+    with open(tokenizer_path, "r") as f:
         tokenizer_config = json.load(f)
-
-    # Set the unknown token
     tokenizer_config["model"]["unk_token"] = "[UNK]"
-
-    # Save the updated configuration
-    with open(config_path + "custom_tokenizer.json", "w") as f:
+    with open(tokenizer_path, "w") as f:
         json.dump(tokenizer_config, f, indent=2)
-
     print("Updated tokenizer.json with unk_token.")
 
-    # Load the custom tokenizer
-    custom_tokenizer = PreTrainedTokenizerFast(tokenizer_file=config_path + "custom_tokenizer.json")
+    # Load and configure the custom tokenizer
+    custom_tokenizer = PreTrainedTokenizerFast(tokenizer_file=tokenizer_path)
     custom_tokenizer.add_special_tokens({
         "pad_token": "[PAD]",
         "cls_token": "[CLS]",
@@ -59,25 +38,17 @@ def main(word_file, config_path):
         "unk_token": "[UNK]",
         "mask_token": "[MASK]"
     })
-
     custom_tokenizer.model_max_length = 512
-    # Save the tokenizer for future use
+
+    # Save the tokenizer configuration
     print("Saving the tokenizer configuration...")
     custom_tokenizer.save_pretrained(config_path)
 
-    # Load the tokenizer.json
-    with open(config_path + "tokenizer.json", "r") as f:
-        tokenizer_data = json.load(f)
-
-    # Save the updated tokenizer.json
-    with open(config_path + "tokenizer.json", "w") as f:
-        json.dump(tokenizer_data, f, indent=2)
-
+    # Save the vocabulary files
     print("Saving the vocabulary files...")
     tokenizer.model.save(config_path, "ziggy")
-    # rename the vocab file
-    os.rename(config_path + "ziggy-vocab.json", config_path + "vocab.json")
-   
+    os.rename(os.path.join(config_path, "ziggy-vocab.json"), os.path.join(config_path, "vocab.json"))
+
     # Test the tokenizer
     print("Testing the tokenizer...")
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config_path, use_fast=True)
