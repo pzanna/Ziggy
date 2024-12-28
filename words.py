@@ -11,7 +11,6 @@ def main(text_file, word_file):
     # Read text file
     with open(text_file, 'r', encoding='utf-8') as file:
         text = file.read()
-
     # Tokenize text
     words = re.findall(r'\b\w+\b', text.lower())
     # Remove duplicates

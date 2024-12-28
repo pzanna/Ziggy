@@ -70,7 +70,7 @@ num_layers = 6                      # Number of transformer layers
 max_seq_length = 512               # Maximum sequence length
 learning_rate = 1e-4                # Learning rate
 batch_size = 32                     # Batch size
-epochs = 20                         # Number of training epochs
+epochs = 2                         # Number of training epochs
 dropout = 0.1                       # Dropout rate
 
 # Quantization-related configs
@@ -293,9 +293,25 @@ quantizer = ONNXQuantizer(
     extra_options=dict(EnableSubgraph=True, MatMulConstBOnly=True),
 )
 
+def count_parameters(model):
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    non_trainable_params = total_params - trainable_params
+    return {
+        "Total Parameters": total_params,
+        "Trainable Parameters": trainable_params,
+        "Non-Trainable Parameters": non_trainable_params
+    }
+
 # Quantize the model
 quantizer.quantize_model()
 
 # Save the quantized model
 check_and_save_model(quantizer.model.model, args.quant_file)
 print(f"Quantized model saved at {args.quant_file}")
+
+# Count model parameters
+param_counts = count_parameters(model)
+print("Total Parameters:", param_counts["Total Parameters"])
+print("Trainable Parameters:", param_counts["Trainable Parameters"])
+print("Non-Trainable Parameters:", param_counts["Non-Trainable Parameters"])
