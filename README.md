@@ -73,7 +73,7 @@ Ziggy is a multi-label text classification system designed for document review a
 - After training, the model is exported to ONNX format using the `optimum` library.
 - Two ONNX models are generated:
   - Full precision ONNX model.
-  - Quantized (int8) ONNX model for size and speed optimization.
+  - Quantized `(int8)` ONNX model for size and speed optimization.
 
 ---
 
@@ -97,7 +97,7 @@ Run the ziggy_test.py script with the required arguments to validate the model.
 
 After training the script automatically exports the model to two ONNX formats:
 
-- ziggy_model.onnx (full precision)
+- ziggy_model.onnx (Full precision)
 - ziggy_model_quantized.onnx (int8 quantized)
 
 ### Inference
@@ -117,7 +117,7 @@ console.log(output);
 
 The model uses a custom tokenizer and vocabulary which is created using ziggy_tokenize.py
 
-### File Structure
+### Scripts
 
 - [ziggy_train.py](../main/docs/ziggy_train.md): Script for training the model.
 - [ziggy_test.py](../main/docs/ziggy_test.md): Script for testing and validating the model.

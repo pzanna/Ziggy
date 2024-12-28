@@ -93,4 +93,5 @@ if __name__ == "__main__":
     parser.add_argument('--word_file', type=str, required=True, help="Path to the data file containing your training words")
     parser.add_argument('--config_path', type=str, required=True, help="Path to save the tokenizer configuration file")
     args = parser.parse_args()
+    
     main(args.word_file, args.config_path)
