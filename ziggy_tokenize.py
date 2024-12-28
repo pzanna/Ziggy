@@ -25,21 +25,13 @@ def main(word_file, config_path):
     trainer = WordLevelTrainer(special_tokens=["[PAD]", "[CLS]", "[SEP]", "[UNK]", "[MASK]"], show_progress=True)
 
     # Load training data
-    print("Loading training data...")
-    clause_data = pd.read_csv(word_file)
-    clauses = clause_data['clause'].tolist()
-
-    # Write the combined text to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, mode='w') as temp_file:
-        temp_file.write(' '.join(clauses))
-        temp_file_path = temp_file.name
-
-    print(temp_file_path)
+    print("Loading word file...")
 
     # Train the tokenizer
     print("Training the tokenizer...")
-    tokenizer.train([temp_file_path], trainer)
-    os.remove(temp_file_path)
+    tokenizer.train([word_file], trainer)
+
+    print("\nTokenizer contains {} tokens.".format(tokenizer.get_vocab_size()))
 
     # Save the tokenizer
     print("Saving the tokenizer...")
@@ -89,7 +81,9 @@ def main(word_file, config_path):
     # Test the tokenizer
     print("Testing the tokenizer...")
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config_path, use_fast=True)
-    encoded = tokenizer.encode("The service provider must ensure that all data is encrypted at rest.")
+    test_text = "the service provider must ensure that all data is encrypted at rest."
+    encoded = tokenizer.encode(test_text)
+    print(test_text)
     print(encoded)
     decoded = tokenizer.decode(encoded)
     print(decoded)

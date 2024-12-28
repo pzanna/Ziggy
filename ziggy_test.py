@@ -5,7 +5,7 @@
 # Import libraries
 import torch
 import onnxruntime as ort
-import tiktoken
+from transformers import PreTrainedTokenizerFast
 import numpy as np
 import pandas as pd
 import argparse
@@ -14,21 +14,22 @@ import argparse
 parser = argparse.ArgumentParser(description="Test Ziggy model in ONNX format")
 parser.add_argument('--quant_file', type=str, required=True, help="Path to the Quantized model file")
 parser.add_argument('--req_file', type=str, help="Path to the requirements file")
+parser.add_argument('--vocab_path', type=str, help="Path to the tokenizer config files")
 
 args = parser.parse_args()
 
 # Define parameters
-max_seq_length = 1024   # Maximum sequence length
+max_seq_length = 512   # Maximum sequence length
 
 # Define input text for testing
 input_text = "Access to client data must be restricted to authorised personnel only."
 
 # Initialise tiktoken tokeniser
-tokeniser = tiktoken.get_encoding("gpt2")
+tokenizer = PreTrainedTokenizerFast.from_pretrained(args.vocab_path, use_fast=True)
 
 # Define function to tokenise and preprocess text
 def encode_text(text, max_length):
-    tokens = tokeniser.encode(text, allowed_special={"<|endoftext|>"})
+    tokens = tokenizer.encode(text.lower())
     if len(tokens) > max_length:
         tokens = tokens[:max_length]  # Truncate
     else:
@@ -37,6 +38,9 @@ def encode_text(text, max_length):
 
 # Load ONNX model
 ort_session = ort.InferenceSession(args.quant_file)
+print("Input Metadata:")
+for input_meta in ort_session.get_inputs():
+    print(f"Name: {input_meta.name}, Type: {input_meta.type}, Shape: {input_meta.shape}")
 
 # Load labels and create mappings
 labels = pd.read_csv(args.req_file)
@@ -45,7 +49,7 @@ label2id = pd.Series(labels.id.values, index=labels.requirement).to_dict()
 num_classes = len(id2label)
 
 # Tokenise and preprocess
-input_ids = torch.tensor([encode_text(input_text, max_seq_length)], dtype=torch.int64)
+input_ids = torch.tensor([encode_text(input_text, max_seq_length)], dtype=torch.long)
 attention_mask = (input_ids != 0).numpy().astype(np.float32)
 
 # Apply softmax to logits to compute probabilities

@@ -21,25 +21,29 @@ function softmax(logits) {
   return exps.map((value) => value / sumExps)
 }
 
+// Predict the sentence
 export async function predictSentence(sentence) {
   try {
-    async function replaceUnknownWords(sentence, tokenizer) {
-      const words = sentence.split(" ")
-      const knownWords = []
-      for (const word of words) {
-        const encoding = await tokenizer.encode(word)
-        // Check if the encoded output is a subword split
-        if (encoding.length > 1) {
-          knownWords.push("[UNK]")
-          unknownWords.push(word)
-        } else {
-          knownWords.push(word)
+    async function replaceUnknownWords(sentence, encoding) {
+      console.log("Sentence: ", sentence)
+      // console.log("Encoding: ", encoding)
+      console.log("Decoding: ", tokenizer.decode(encoding))
+      // Check if the encoding contains unknown words
+      for (let i = 0; i < encoding.length; i++) {
+        if (encoding[i] === tokenizer.unk_token_id) {
+          // Add the word from the sentence to the unknown words list
+          const word = sentence.split(" ")[i]
+          if (word !== undefined) {
+            unknownWords.push(word)
+          }
         }
       }
-      return knownWords.join(" ")
+      return
     }
-    const cleanSentence = await replaceUnknownWords(sentence, tokenizer)
-    let encoding = tokenizer.encode(cleanSentence)
+    // Tokenize the sentence
+    sentence = sentence.toLowerCase()
+    let encoding = tokenizer.encode(sentence)
+    await replaceUnknownWords(sentence, encoding)
     if (encoding.length > tokenizer.model_max_length) {
       encoding = encoding[(0, tokenizer.model_max_length)]
     } else {
@@ -47,27 +51,30 @@ export async function predictSentence(sentence) {
         Array(tokenizer.model_max_length - encoding.length).fill(0)
       )
     }
-
+    // Create the input tensors
     const inputIds = new ort.Tensor(
       "int64",
       BigInt64Array.from(encoding.map((id) => BigInt(id))),
       [1, encoding.length]
     )
     const attentionMask = new ort.Tensor(
-      "int64",
-      BigInt64Array.from(encoding.map((mask) => BigInt(mask))),
+      "float32", // Correct type for attention_mask
+      Float32Array.from(encoding.map((mask) => (mask !== 0 ? 1.0 : 0.0))), // Convert to float
       [1, encoding.length]
     )
+    // Prepare the input feeds
     const feeds = {
       input_ids: inputIds,
       attention_mask: attentionMask,
     }
+    // Run the model
     const output = await session.run(feeds)
     const probabilities = softmax(output.logits.data)
     const labeledProbabilities = labels.map((label, i) => ({
       label: label,
       probability: probabilities[i],
     }))
+    // Sort the labeled probabilities by probability
     labeledProbabilities.sort((a, b) => b.probability - a.probability)
     // Return the labeled probabilities
     return labeledProbabilities
