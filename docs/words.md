@@ -1,13 +1,13 @@
-# Text File Processor
+# words.py
 
 ## Description
 
 Processes a text file to extract, clean, and save a list of words.
 
-## Args
+## Command line arguments
 
-- `--text_file` (str): The path to the input text file.
-- `--word_file` (str): The path to the output word file.
+`--text_file` The path to the input text file.
+`--word_file` The path to the output word file.
 
 ## Steps Performed
 
@@ -27,4 +27,4 @@ The function performs the following steps:
 
 ## Output
 
-Prints the total number of words saved to the output file.
+Saves the word list and prints the total number of words saved to the output file.

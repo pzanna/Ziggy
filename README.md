@@ -119,7 +119,7 @@ The model uses a custom tokenizer and vocabulary which is created using ziggy_to
 
 ### File Structure
 
-- [ziggy_train.py] (../docs/ziggy_train..md): Script for training the model.
-- [ziggy_test.py] (../docs/ziggy_test.md): Script for testing and validating the model.
-- [ziggy_tokenize.py] (../docs/ziggy_tokenize.md): Script for creating a custom tokenizer and vocabulary.
-- [words.py] (../docs/words.md): Script for creating a word file for the custom tokenizer.
+- [ziggy_train.py](../docs/ziggy_train.md): Script for training the model.
+- [ziggy_test.py](../docs/ziggy_test.md): Script for testing and validating the model.
+- [ziggy_tokenize.py](../docs/ziggy_tokenize.md): Script for creating a custom tokenizer and vocabulary.
+- [words.py](../docs/words.md): Script for creating a word file for the custom tokenizer.
