@@ -4,6 +4,21 @@
 
 Train Ziggy for multi-label text classification and export it to ONNX format using a custom tokenizer.
 
+## Usage
+
+```
+python ziggy_train.py --model_file <name_of_model> --onnx_file <name_of_onnx_model> --quant_file <name_of_quantized_model> --data_file <name_of_data_file> --vocab_path <path_to_vocab_files> --req_file <name_of_requirements_file>
+```
+
+## Command line arguments
+
+`--model_file` Name and path to save the model file.
+`--onnx_file` Name and path to save the ONNX model file.
+`--quant_file` Name and path to save the Quantized model file.
+`--data_file` Name and path to the data file.
+`--vocab_path` Path to the vocab configuration files.
+`--req_file` Name and path to the requirements file.
+
 ## Steps performed
 
 - Parses command-line arguments for model and data file paths.
@@ -16,15 +31,6 @@ Train Ziggy for multi-label text classification and export it to ONNX format usi
 - Initializes and trains the model, saving the trained model to a specified file.
 - Exports the trained model to ONNX format and performs model slimming and quantization.
 - Saves the quantized model and prints model parameter counts.
-
-## Command line arguments
-
-`--model_file` Path to save the model file.
-`--onnx_file` Path to save the ONNX model file.
-`--quant_file` Path to save the Quantized model file.
-`--data_file` Path to the data file.
-`--vocab_path` Path to the vocab configuration files.
-`--req_file` Path to the requirements file.
 
 ## Functions
 

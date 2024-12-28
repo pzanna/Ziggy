@@ -4,14 +4,18 @@
 
 Processes a text file to extract, clean, and save a list of words.
 
+## Usage
+
+```
+python words.py --text_file <name_of_quantized_model> ----text_file <name_of_requirements_file>
+```
+
 ## Command line arguments
 
-`--text_file` The path to the input text file.
-`--word_file` The path to the output word file.
+`--text_file` Name and path to the input text file.
+`--text_file` Name and path to the output word file.
 
 ## Steps Performed
-
-The function performs the following steps:
 
 - Reads the content of the text file.
 - Tokenizes the text into words.
