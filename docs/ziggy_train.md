@@ -50,6 +50,7 @@ python ziggy_train.py --model_file <name_of_model> --onnx_file <name_of_onnx_mod
 ## Classes
 
 `TextClassificationDataset` Custom dataset class for text classification.
+
 `TransformerClassifier` Transformer-based neural network model for multi-label text classification.
 
 ## Output
