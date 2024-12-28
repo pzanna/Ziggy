@@ -25,9 +25,9 @@ function softmax(logits) {
 export async function predictSentence(sentence) {
   try {
     async function replaceUnknownWords(sentence, encoding) {
-      console.log("Sentence: ", sentence)
+      // console.log("Sentence: ", sentence)
       // console.log("Encoding: ", encoding)
-      console.log("Decoding: ", tokenizer.decode(encoding))
+      console.log("Tokenized: ", tokenizer.decode(encoding))
       // Check if the encoding contains unknown words
       for (let i = 0; i < encoding.length; i++) {
         if (encoding[i] === tokenizer.unk_token_id) {

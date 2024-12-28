@@ -25,7 +25,7 @@ def main(text_file, word_file):
     # Remove words with special characters
     words = [word for word in words if word.isalnum()]
     # Add back single digits and 2 character words
-    special_words = ". ( ) { } ? / ~ ! @ # $ % ^ & * + = [ ] \ | - _ , < > ` ' “ ” \" 1 2 3 4 5 6 7 8 9 0 a i is if of to in on at by or be an as no so do we he me my us up am pm ah eh oh ox ax ex ma pa ok hi go it"
+    special_words = ". ( ) { } ? / ~ ! @ # $ % ^ & * + = ; : [ ] \ | - _ , < > ` ' “ ” \" 1 2 3 4 5 6 7 8 9 0 a i is if of to in on at by or be an as no so do we he me my us up am pm ah eh oh ox ax ex ma pa ok hi go it"
     special_words = special_words.split()
     words.extend(special_words)
     # Sort words
