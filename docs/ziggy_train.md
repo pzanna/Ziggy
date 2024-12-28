@@ -40,8 +40,11 @@ python ziggy_train.py --model_file <name_of_model> --onnx_file <name_of_onnx_mod
 ## Functions
 
 `encode_text(text, max_length)` Tokenizes and preprocesses text.
+
 `train_model(model, dataloader, epochs, learning_rate, device)` Trains the model.
+
 `evaluate_model(model, dataloader, device)` Evaluates the model.
+
 `count_parameters(model)` Counts the total, trainable, and non-trainable parameters of the model.
 
 ## Classes

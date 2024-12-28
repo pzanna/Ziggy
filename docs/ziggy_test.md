@@ -37,6 +37,7 @@ python ziggy_test.py --quant_file <path_to_quantized_model> --req_file <path_to_
 ## Functions
 
 `encode_text(text, max_length)` Tokenizes and preprocesses the input text.
+
 `softmax(logits)` Applies softmax to logits to compute probabilities.
 
 ## Outputs
