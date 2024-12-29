@@ -1,8 +1,0 @@
-id,requirement,description
-0,"ENC-1","All data must be encrypted at rest"
-1,"ENC-2","All data must be encrypted in transit"
-2,"HAN-1","Data must be destroyed when no longer required"
-3,"HAN-2","Data must be destroyed when requested by the client"
-4,"HAN-3","Data must be handled in accordance with data privacy laws"
-5,"IAM-1","Access to data must be restricted to authorised personnel"
-6,"IAM-2","Access to data must be restricted to only those with a legitimate business need"

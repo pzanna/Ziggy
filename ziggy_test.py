@@ -18,9 +18,9 @@ def softmax(logits):
     exp_logits = np.exp(logits - np.max(logits))
     return exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
 
-def main(quant_file, req_file, vocab_path):
+def main(quant_file, label_file, vocab_path):
     max_seq_length = 512
-    input_text = "Access to client data must be restricted to authorised personnel only."
+    input_text = "Cat"
     
     tokenizer = PreTrainedTokenizerFast.from_pretrained(vocab_path, use_fast=True)
     ort_session = ort.InferenceSession(quant_file)
@@ -29,8 +29,8 @@ def main(quant_file, req_file, vocab_path):
     for input_meta in ort_session.get_inputs():
         print(f"Name: {input_meta.name}, Type: {input_meta.type}, Shape: {input_meta.shape}")
 
-    labels = pd.read_csv(req_file)
-    id2label = pd.Series(labels.requirement.values, index=labels.id).to_dict()
+    labels = pd.read_csv(label_file)
+    id2label = pd.Series(labels.label.values, index=labels.id).to_dict()
     num_classes = len(id2label)
 
     input_ids = torch.tensor([encode_text(input_text, tokenizer, max_seq_length)], dtype=torch.long)
@@ -41,6 +41,7 @@ def main(quant_file, req_file, vocab_path):
     predicted_label = np.argmax(probabilities, axis=1)[0]
     predicted_probability = probabilities[0][predicted_label]
 
+    print(f"Number of classes: {num_classes}")
     print(f"Predicted Label: {id2label[predicted_label]} ({predicted_label})")
     print(f"Probability: {predicted_probability * 100:.2f}%")
     print(f"Probabilities: {probabilities[0]}")
@@ -48,8 +49,8 @@ def main(quant_file, req_file, vocab_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test Ziggy model in ONNX format")
     parser.add_argument('--quant_file', type=str, required=True, help="Path to the Quantized model file")
-    parser.add_argument('--req_file', type=str, help="Path to the requirements file")
+    parser.add_argument('--label_file', type=str, help="Path to the labels file")
     parser.add_argument('--vocab_path', type=str, help="Path to the tokenizer config files")
     args = parser.parse_args()
 
-    main(args.quant_file, args.req_file, args.vocab_path)
+    main(args.quant_file, args.label_file, args.vocab_path)

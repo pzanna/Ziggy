@@ -15,7 +15,7 @@ body h1 {
 }
 
 .button-table .button {
-    padding: 10px;
+    padding: 30px;
     text-align: center;
 }
 
@@ -29,77 +29,7 @@ body h1 {
     text-align: center;
 }
 
-.label-section {
-    width: 80%;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
+.output p{
+    text-align: center;
 }
 
-.label-header {
-    background-color: #f2f2f2;
-    padding: 10px;
-    font-size: 1.2em;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.clauses-container {
-    display: block;     /* Start with the containers open */
-    padding: 0px 10px 10px 10px;
-}
-
-.clause {
-    margin-bottom: 0px;
-    padding: 5px 10px 10px 10px;
-    border-bottom: 1px solid #ddd;
-    font-size: small;
-}
-
-.probability {
-    font-size: 0.9em;
-    color: #555;
-}
-
-.feedback-buttons {
-    margin-top: 5px;
-    display: flex;
-    gap: 0px;
-}
-
-.like {
-    border: none;
-    cursor: pointer;
-    font-size: 1.3em;
-    padding: 0px 5px 0.4rem 5px;
-    border-radius: 5px;
-    background-color: white;
-    color: white;
-}
-
-.dislike {
-    border: none;
-    cursor: pointer;
-    font-size: 1.3em;
-    padding: 0.4rem 5px 0px 5px;
-    border-radius: 5px;
-    background-color: white;
-    color: white;
-}
-
-.liked,
-.disliked {
-    font-weight: bold;
-    opacity: 0.8;
-}
-
-.liked-text {
-    color: green;
-    font-weight: bold;
-}
-
-.disliked-text {
-    color: red;
-    opacity: 0.2;
-}

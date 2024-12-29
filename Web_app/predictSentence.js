@@ -1,6 +1,6 @@
 import { AutoTokenizer } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"
 
-const labels = ["Action", "Description", "Dialogue"]
+const labels = ["Cat", "Dog", "Bird", "Fish", "Horse"]
 let tokenizer, session
 
 // Load the ONNX model and tokenizer

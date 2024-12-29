@@ -110,7 +110,7 @@ def count_parameters(model):
         "Non-Trainable Parameters": non_trainable_params
     }
     
-def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
+def main(model_file, onnx_file, quant_file, data_file, vocab_path, label_file):
     # Set random seed for reproducibility
     seed = 42
     random.seed(seed)
@@ -129,7 +129,7 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
     max_seq_length = 512                # Maximum sequence length
     learning_rate = 1e-4                # Learning rate
     batch_size = 32                     # Batch size
-    epochs = 20                         # Number of training epochs
+    epochs = 10                         # Number of training epochs
     dropout = 0.1                       # Dropout rate
 
     # Quantization-related configs
@@ -186,16 +186,16 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
             logits = self.fc(pooled_output)
             return logits
 
-    labels_df = pd.read_csv(req_file)
-    label_columns = labels_df['requirement'].tolist()
+    labels_df = pd.read_csv(label_file)
+    label_columns = labels_df['label'].tolist()
     num_classes = len(label_columns)
 
-    clause_data = pd.read_csv(data_file)
+    text_data = pd.read_csv(data_file)
 
     # Instead of converting to a single label, keep the multi-label vector:
-    clause_data['label_vector'] = clause_data[label_columns].values.tolist()
-    clauses = clause_data['clause'].tolist()
-    labels_multi = clause_data['label_vector'].tolist()  # Each item is e.g. [0,1,0,...]
+    text_data['label_vector'] = text_data[label_columns].values.tolist()
+    sentence = text_data['sentence'].tolist()
+    labels_multi = text_data['label_vector'].tolist()  # Each item is e.g. [0,1,0,...]
 
     # Count how many times this label is '1' across all samples
     print("Label distribution in your dataset:")
@@ -204,7 +204,7 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, req_file):
         print(f"{label_name}: {label_count}")
 
     # Build PyTorch Dataset & DataLoader
-    dataset = TextClassificationDataset(clauses, labels_multi, max_seq_length)
+    dataset = TextClassificationDataset(sentence, labels_multi, max_seq_length)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     # Initialize Model
@@ -293,7 +293,7 @@ if __name__ == "__main__":
     parser.add_argument('--quant_file', type=str, required=True, help="Path to save the Quantized model file")
     parser.add_argument('--data_file', type=str, required=True, help="Path to the data file")
     parser.add_argument('--vocab_path', type=str, required=True, help="Path to the vocab configuration files")
-    parser.add_argument('--req_file', type=str, help="Path to the requirements file")
+    parser.add_argument('--label_file', type=str, help="Path to the labels file")
     args = parser.parse_args()
 
-    main(args.model_file, args.onnx_file, args.quant_file, args.data_file, args.vocab_path, args.req_file)
+    main(args.model_file, args.onnx_file, args.quant_file, args.data_file, args.vocab_path, args.label_file)
