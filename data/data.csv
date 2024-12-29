@@ -1,4 +1,4 @@
-sentence,"Cat","Dog","Bird","Fish","Horse"
+sentence,Cat,Dog,Bird,Fish,Horse
 "A lithe body with a sleek or fluffy coat, typically adorned with stripes, spots, or solid colours in a variety of patterns.",1,0,0,0,0
 "Sharp, pointed ears sit atop a triangular head, framing large, almond-shaped eyes that gleam in hues of green, gold, or blue.",1,0,0,0,0
 "A long, sinuous tail often sways gracefully, providing balance and expression.",1,0,0,0,0
@@ -29,3 +29,53 @@ sentence,"Cat","Dog","Bird","Fish","Horse"
 "Tall, slender legs end in sturdy hooves, built for speed, endurance, and graceful movement.",0,0,0,0,1
 "Upright ears rotate attentively, capturing every sound in its surroundings.",0,0,0,0,1
 "An expressive face with a delicate muzzle, framed by a mane or shaggy coat in a variety of colours.",0,0,0,0,1
+"A compact body with fur that ranges from silky short to luxuriously long.",1,0,0,0,0
+"Pointed ears that swivel with precision, always attuned to their surroundings.",1,0,0,0,0
+"Eyes that change with light, glowing mysteriously in dim conditions.",1,0,0,0,0
+"A flexible spine allows for leaps and stretches with incredible agility.",1,0,0,0,0
+"Tiny, sandpaper-like tongue used for grooming its fine coat.",1,0,0,0,0
+"Elegant paws leave delicate, silent tracks as it moves.",1,0,0,0,0
+"Its tail, long and expressive, is a barometer of mood and curiosity.",1,0,0,0,0
+"Claws retract smoothly, leaving its movements effortless and quiet.",1,0,0,0,0
+"A nose that twitches subtly, sensing the faintest of smells.",1,0,0,0,0
+"Sleek muscles ripple beneath its coat, built for sudden bursts of speed.",1,0,0,0,0
+"A robust or lean build, often covered in fur that can be coarse or silky.",0,1,0,0,0
+"Its tail wags in a blur, a clear signal of excitement or happiness.",0,1,0,0,0
+"Long, drooping ears or perked-up ones add to its distinctive silhouette.",0,1,0,0,0
+"A moist nose constantly sniffs the air, seeking familiar scents.",0,1,0,0,0
+"Its fur comes in countless textures, from wiry and stiff to soft and fluffy.",0,1,0,0,0
+"Strong jaws hold a playful or protective demeanour.",0,1,0,0,0
+"Legs that spring with energy, eager for a run or a jump.",0,1,0,0,0
+"A deep chest and arched neck give it an elegant or powerful stance.",0,1,0,0,0
+"Wide-set eyes exude warmth and attentiveness, inviting trust.",0,1,0,0,0
+"A mouth that often seems to wear a smile, full of personality.",0,1,0,0,0
+"Feathers that form intricate patterns, a blend of beauty and camouflage.",0,0,1,0,0
+"A light skeleton built for efficient flight and swift movement.",0,0,1,0,0
+"Its beak varies greatly, shaped to crack seeds, sip nectar, or catch prey.",0,0,1,0,0
+"Wings spread wide to catch air, creating a powerful silhouette.",0,0,1,0,0
+"Small claws grip tightly onto branches or ledges, ensuring balance.",0,0,1,0,0
+"Tail feathers fan out for precision in flight, guiding every twist and turn.",0,0,1,0,0
+"Bright eyes reflect light, taking in every detail of its surroundings.",0,0,1,0,0
+"A delicate body perched gracefully, even in the lightest breeze.",0,0,1,0,0
+"Its throat expands rhythmically, releasing trills and melodies into the air.",0,0,1,0,0
+"A crest or tuft adds character, crowning its colourful appearance.",0,0,1,0,0
+"Its body glides effortlessly, designed to cut through water with minimal resistance.",0,0,0,1,0
+"Scales overlap like armour, shimmering with metallic or pastel tones.",0,0,0,1,0
+"Fins fan out elegantly, catching light as they steer gracefully.",0,0,0,1,0
+"A mouth that constantly moves, filtering food or water.",0,0,0,1,0
+"Its eyes remain unblinking, always watchful in its aquatic world.",0,0,0,1,0
+"A tail fin that propels it forward in smooth, undulating motions.",0,0,0,1,0
+"Its sleek body shape varies, from narrow and dart-like to wide and disc-shaped.",0,0,0,1,0
+"The gills open and close in rhythmic patterns, ensuring a constant flow of oxygen.",0,0,0,1,0
+"A dorsal fin provides stability as it navigates swiftly through currents.",0,0,0,1,0
+"Its body often glows or shimmers, reflecting the depths of its watery habitat.",0,0,0,1,0
+"A strong chest and broad shoulders power its graceful strides.",0,0,0,0,1
+"Its mane and tail flow like a banner, swaying with every movement.",0,0,0,0,1
+"Large nostrils flare as it breathes deeply, sensing its environment.",0,0,0,0,1
+"Its legs are long and sinewy, built for speed and endurance.",0,0,0,0,1
+"The arch of its neck carries an air of dignity and power.",0,0,0,0,1
+"Ears pivot independently, constantly attuned to sounds of interest.",0,0,0,0,1
+"A broad, flat back provides strength, supporting its elegant frame.",0,0,0,0,1
+"Hooves strike the ground with a rhythmic beat, creating a steady cadence.",0,0,0,0,1
+"Its coat shines in the sunlight, smooth and velvety to the touch.",0,0,0,0,1
+"Eyes as deep and dark as pools, reflecting intelligence and emotion.",0,0,0,0,1

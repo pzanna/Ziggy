@@ -197,6 +197,7 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, label_file):
     sentence = text_data['sentence'].tolist()
     labels_multi = text_data['label_vector'].tolist()  # Each item is e.g. [0,1,0,...]
 
+    print("Number of samples in dataset:", len(sentence))
     # Count how many times this label is '1' across all samples
     print("Label distribution in your dataset:")
     for idx, label_name in enumerate(label_columns):

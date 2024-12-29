@@ -1,6 +1,5 @@
 import { AutoTokenizer } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"
 
-const labels = ["Cat", "Dog", "Bird", "Fish", "Horse"]
 let tokenizer, session
 
 // Load the ONNX model and tokenizer
@@ -70,14 +69,22 @@ export async function predictSentence(sentence) {
     // Run the model
     const output = await session.run(feeds)
     const probabilities = softmax(output.logits.data)
-    const labeledProbabilities = labels.map((label, i) => ({
-      label: label,
-      probability: probabilities[i],
-    }))
-    // Sort the labeled probabilities by probability
-    labeledProbabilities.sort((a, b) => b.probability - a.probability)
-    // Return the labeled probabilities
-    return labeledProbabilities
+    console.log("Probabilities: ", probabilities)
+    // Create the output object with indexes and probabilities
+    const outputObject = []
+    for (let i = 0; i < probabilities.length; i++) {
+      outputObject.push({
+        index: i,
+        probability: probabilities[i],
+      })
+    }
+    console.log("Output object: ", outputObject)
+    // Sort the probabilities from highest to lowest
+    const sortedProbabilities = outputObject.sort(
+      (a, b) => b.probability - a.probability
+    )
+    console.log("Sorted probabilities: ", sortedProbabilities)
+    return sortedProbabilities
   } catch (e) {
     console.error(e)
     throw e
