@@ -15,15 +15,15 @@ python ziggy_test.py --quant_file <path_to_quantized_model> --req_file <path_to_
 
 `--quant_file` Path to the quantized model file.
 
-`--req_file` Path to the requirements file (CSV) containing label mappings.
+`--labels_file` Path to the labels file (CSV) containing label mappings.
 
 `--vocab_path` Path to the tokenizer configuration files.
 
 ## Steps performed
 
 - Define parameters.
-- Defines a sample input text for testing
-- Loads custom tokenizer from the provided vocabulary path using the Hugging `Face PreTrainedTokenizerFast.` function.
+- Defines a sample input text for testing.
+- Loads custom tokenizer from the provided vocabulary path using the Hugging Face `PreTrainedTokenizerFast` function.
 - Loads the quantized ONNX model using `onnxruntime.InferenceSession` function.
 - Converts sample input text to lowercase.
 - Truncates if the token count exceeds max_seq_length.
@@ -32,7 +32,7 @@ python ziggy_test.py --quant_file <path_to_quantized_model> --req_file <path_to_
 - Creates label to ID (label2id) and ID to label (id2label) mappings.
 - Tokenizes input text.
 - Prints the input names, data types, and shapes of the ONNX model inputs for verification.
-- Prints the predicted label name and its ID, probability of the predicted label. and all class probabilities.
+- Prints the predicted label name and its ID, probability of the predicted label, and all class probabilities.
 
 ## Functions
 
@@ -42,4 +42,4 @@ python ziggy_test.py --quant_file <path_to_quantized_model> --req_file <path_to_
 
 ## Outputs
 
-Outputs model metadata, predicted label of the sample text and probalibities array of all labels.
+Outputs model metadata, predicted label of the sample text and probabilities array of all labels.

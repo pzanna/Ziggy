@@ -110,7 +110,7 @@ def count_parameters(model):
         "Non-Trainable Parameters": non_trainable_params
     }
     
-def main(model_file, onnx_file, quant_file, data_file, vocab_path, label_file):
+def main(model_file, onnx_file, quant_file, data_file, vocab_path, labels_file):
     # Set random seed for reproducibility
     seed = 42
     random.seed(seed)
@@ -186,7 +186,7 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, label_file):
             logits = self.fc(pooled_output)
             return logits
 
-    labels_df = pd.read_csv(label_file)
+    labels_df = pd.read_csv(labels_file)
     label_columns = labels_df['label'].tolist()
     num_classes = len(label_columns)
 
@@ -294,7 +294,7 @@ if __name__ == "__main__":
     parser.add_argument('--quant_file', type=str, required=True, help="Path to save the Quantized model file")
     parser.add_argument('--data_file', type=str, required=True, help="Path to the data file")
     parser.add_argument('--vocab_path', type=str, required=True, help="Path to the vocab configuration files")
-    parser.add_argument('--label_file', type=str, help="Path to the labels file")
+    parser.add_argument('--labels_file', type=str, help="Path to the labels file")
     args = parser.parse_args()
 
-    main(args.model_file, args.onnx_file, args.quant_file, args.data_file, args.vocab_path, args.label_file)
+    main(args.model_file, args.onnx_file, args.quant_file, args.data_file, args.vocab_path, args.labels_file)

@@ -123,3 +123,9 @@ The model uses a custom tokenizer and vocabulary which is created using ziggy_to
 - [ziggy_test.py](../main/docs/ziggy_test.md): Script for testing and validating the model.
 - [ziggy_tokenize.py](../main/docs/ziggy_tokenize.md): Script for creating a custom tokenizer and vocabulary.
 - [words.py](../main/docs/words.md): Script for creating a word file for the custom tokenizer.
+
+### Example Code
+
+The `Web Example` includes a sample HTML and Javascript example showing how to load and inference the quantized Ziggy model. It consists of `index.html` which loads the label names from a csv file and provides the user interface.
+
+The user inputs a description of an animal and when the "Guess!" button is pressed, calls the `predictSentence(sentence)` function in the predictSentence.js file, passing the text from the input. The function interferences the model and return an array of probabilities, one for each label, which is displayed next to the label name.

@@ -2,7 +2,7 @@
 
 ## Description
 
-This script creates a custom tokenizer using the Hugging Face tokenizers library. The tokenizer is trained on a provided word file and saved to a specified configuration path. It also supports special tokens and can be used for multi-label text classification.
+This script creates a custom tokenizer using the Hugging Face tokenizers library. The tokenizer is trained on a provided word file and saved to a specified configuration path. It supports special tokens and can be used for multi-label text classification.
 
 ## Usage
 
@@ -24,4 +24,4 @@ python ziggy_tokenize.py --word_file <path_to_word_file> --config_path <path_to_
 
 ## Outputs
 
-Saves tokenizer configuration files and displays the number of tokens. It also varifies the tokenizer by encoding, then decoding, a test sentence.
+Saves tokenizer configuration files and displays the number of tokens. It also verifies the tokenizer by encoding, then decoding, a test sentence.

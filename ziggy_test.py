@@ -18,7 +18,7 @@ def softmax(logits):
     exp_logits = np.exp(logits - np.max(logits))
     return exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
 
-def main(quant_file, label_file, vocab_path):
+def main(quant_file, labels_file, vocab_path):
     max_seq_length = 512
     input_text = "Cat"
     
@@ -29,7 +29,7 @@ def main(quant_file, label_file, vocab_path):
     for input_meta in ort_session.get_inputs():
         print(f"Name: {input_meta.name}, Type: {input_meta.type}, Shape: {input_meta.shape}")
 
-    labels = pd.read_csv(label_file)
+    labels = pd.read_csv(labels_file)
     id2label = pd.Series(labels.label.values, index=labels.id).to_dict()
     num_classes = len(id2label)
 
@@ -49,8 +49,8 @@ def main(quant_file, label_file, vocab_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test Ziggy model in ONNX format")
     parser.add_argument('--quant_file', type=str, required=True, help="Path to the Quantized model file")
-    parser.add_argument('--label_file', type=str, help="Path to the labels file")
+    parser.add_argument('--labels_file', type=str, help="Path to the labels file")
     parser.add_argument('--vocab_path', type=str, help="Path to the tokenizer config files")
     args = parser.parse_args()
 
-    main(args.quant_file, args.label_file, args.vocab_path)
+    main(args.quant_file, args.labels_file, args.vocab_path)
