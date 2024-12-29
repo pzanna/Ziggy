@@ -52,7 +52,8 @@ def main(word_file, config_path):
     # Test the tokenizer
     print("Testing the tokenizer...")
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config_path, use_fast=True)
-    test_text = "the service provider must ensure that all data is encrypted at rest."
+    test_text = "The cat is small and fluffy."
+    test_text = test_text.lower()
     encoded = tokenizer.encode(test_text)
     print(test_text)
     print(encoded)
