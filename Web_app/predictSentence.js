@@ -3,48 +3,58 @@ import { AutoTokenizer } from "https://cdn.jsdelivr.net/npm/@xenova/transformers
 let tokenizer, session
 
 // Load the ONNX model and tokenizer
-console.log("Loading ONNX Runtime WebAssembly backend...")
-var downLoadingModel = true
-tokenizer = await AutoTokenizer.from_pretrained("../web_app/model/")
-session = await ort.InferenceSession.create(
-  "./model/ziggy_model_quantized.onnx"
-)
-downLoadingModel = false
-console.log("Model and tokenizer successfully loaded.")
+async function loadModelAndTokenizer() {
+  try {
+    console.log("Loading ONNX Runtime WebAssembly backend...")
+    tokenizer = await AutoTokenizer.from_pretrained("../web_app/model/")
+    session = await ort.InferenceSession.create(
+      "./model/ziggy_model_quantized.onnx"
+    )
+    console.log("Model and tokenizer successfully loaded.")
+  } catch (error) {
+    console.error("Error loading model or tokenizer:", error)
+    throw error
+  }
+}
 
 // Softmax function
 function softmax(logits) {
-  const maxLogit = Math.max(...logits)
+  const maxLogit = Math.max(...logits) // Numerical stability improvement
   const exps = logits.map((x) => Math.exp(x - maxLogit))
-  const sumExps = exps.reduce((a, b) => a + b)
-  return exps.map((value) => value / sumExps)
+  const sumExps = exps.reduce((a, b) => a + b, 0)
+  return exps.map((exp) => exp / sumExps)
+}
+
+async function replaceUnknownWords(sentence, encoding) {
+  console.log("Tokenized: ", tokenizer.decode(encoding))
+  // Check if the encoding contains unknown words
+  for (let i = 0; i < encoding.length; i++) {
+    if (encoding[i] === tokenizer.unk_token_id) {
+      // Add the word from the sentence to the unknown words list
+      const word = sentence.split(" ")[i]
+      if (word !== undefined) {
+        unknownWords.push(word)
+      }
+    }
+  }
+  return
 }
 
 // Predict the sentence
 export async function predictSentence(sentence) {
   try {
-    async function replaceUnknownWords(sentence, encoding) {
-      // console.log("Sentence: ", sentence)
-      // console.log("Encoding: ", encoding)
-      console.log("Tokenized: ", tokenizer.decode(encoding))
-      // Check if the encoding contains unknown words
-      for (let i = 0; i < encoding.length; i++) {
-        if (encoding[i] === tokenizer.unk_token_id) {
-          // Add the word from the sentence to the unknown words list
-          const word = sentence.split(" ")[i]
-          if (word !== undefined) {
-            unknownWords.push(word)
-          }
-        }
-      }
-      return
+    if (!tokenizer || !session) {
+      await loadModelAndTokenizer()
     }
-    // Tokenize the sentence
+    // Preprocess sentence
+    if (!sentence || sentence.trim() === "") {
+      throw new Error("Input sentence is empty.")
+    }
     sentence = sentence.toLowerCase()
     let encoding = tokenizer.encode(sentence)
     await replaceUnknownWords(sentence, encoding)
     if (encoding.length > tokenizer.model_max_length) {
-      encoding = encoding[(0, tokenizer.model_max_length)]
+      encoding = encoding.slice(0, tokenizer.model_max_length)
     } else {
       encoding = encoding.concat(
         Array(tokenizer.model_max_length - encoding.length).fill(0)
@@ -78,15 +88,22 @@ export async function predictSentence(sentence) {
         probability: probabilities[i],
       })
     }
-    console.log("Output object: ", outputObject)
     // Sort the probabilities from highest to lowest
     const sortedProbabilities = outputObject.sort(
       (a, b) => b.probability - a.probability
     )
-    console.log("Sorted probabilities: ", sortedProbabilities)
     return sortedProbabilities
-  } catch (e) {
-    console.error(e)
-    throw e
+  } catch (error) {
+    console.error("Error during prediction:", error)
+    throw error
   }
 }
+
+// Load model and tokenizer at runtime
+;(async () => {
+  try {
+    await loadModelAndTokenizer()
+  } catch (error) {
+    console.error("Error initialising application:", error)
+  }
+})()

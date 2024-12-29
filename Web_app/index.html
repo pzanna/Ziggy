@@ -14,7 +14,7 @@
       <tr>
         <td>
           <p>
-            This page allows you the enter the description of an animal and it
+            This page allows you to enter the description of an animal and it
             will predict the type of animal.
           </p>
         </td>
@@ -38,44 +38,74 @@
           <p id="outcome"></p>
         </td>
       </tr>
-      <tr></tr>
     </table>
-
     <br />
 
     <script type="module">
       import { predictSentence } from "./predictSentence.js"
 
       window.unknownWords = []
+      let labels = []
 
+      // Load the labels.csv file and parse it
+      async function loadLabels() {
+        try {
+          const label_file = await fetch("./model/labels.csv")
+          const text = await label_file.text()
+          // Split the input into lines
+          const lines = text.split("\n")
+          console.log("Text loaded:", lines)
+          // Extract the labels
+          labels = lines.slice(1).map((line) => {
+            // Split by commas and remove quotes
+            const parts = line.split(",")
+            return parts[1].replace(/"/g, "")
+          })
+          console.log("Labels loaded:", labels)
+        } catch (error) {
+          console.error("Error loading labels:", error)
+        }
+      }
+
+      // Function to print the unknown words
+      function getUnknownWords() {
+        const noDupUnknownWords = [...new Set(window.unknownWords)]
+        let unknownWordList = ""
+        for (let i = 0; i < noDupUnknownWords.length; i++) {
+          unknownWordList = noDupUnknownWords.join(" ")
+        }
+        console.log(noDupUnknownWords.length)
+        console.log("Unknown tokens (words):\n", unknownWordList)
+        return window.unknownWords
+      }
+
+      // Function to predict the animal from a sentence
+      // The sentence parameter should be a string describing the animal.
       async function predictAnimal(sentence) {
         try {
           let result = ""
           let score = 0
           const response = await predictSentence(sentence)
-          // convert the response to a string
-          for (let i = 0; i < response.length; i++) {
-            score = response[i].probability * 100
-            result += `${response[i].label} : ${score.toFixed(2)}%\n`
-          }
+          // Convert the response to a string using template literals
+          result = response
+            .map(
+              (item) =>
+                `${labels[item.index]} : ${(item.probability * 100).toFixed(
+                  2
+                )}%`
+            )
+            .join("\n")
           console.log(result)
-          document.getElementById("outcome").innerText = result
-
           // Print the unknown words
-          const noDupUnknownWords = [...new Set(unknownWords)]
-          let unknownWordList = ""
-          for (let i = 0; i < noDupUnknownWords.length; i++) {
-            unknownWordList += noDupUnknownWords[i].toString()
-            if (unknownWordList.slice(-1) !== ",") {
-              unknownWordList += " "
-            }
-          }
-          console.log(noDupUnknownWords.length)
-          console.log(" unkown tokens:\n", unknownWordList)
+          getUnknownWords()
+          document.getElementById("outcome").innerText = result
         } catch (e) {
           console.error("Error during prediction:", e)
         }
       }
+
+      // Load the labels csv file
+      loadLabels()
 
       window.predictAnimal = predictAnimal
     </script>
