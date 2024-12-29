@@ -4,23 +4,28 @@ sentence,"Cat","Dog","Bird","Fish","Horse"
 "A long, sinuous tail often sways gracefully, providing balance and expression.",1,0,0,0,0
 "Its paws are soft and padded, concealing retractable claws that emerge when climbing or hunting.",1,0,0,0,0
 "Whiskers extend outward from a delicate muzzle, adding to its expressive and alert appearance.",1,0,0,0,0
+"A fluffy or sleek coat that can range from short and smooth to long and flowing, often in shades of brown, black, white, or ginger.",1,0,0,0,0
 "A sturdy or slender frame covered in fur that can range from short and sleek to long and shaggy, often in a variety of colours and patterns.",0,1,0,0,0
 "A wide head or narrow snout, with expressive eyes that shine with loyalty and curiosity.",0,1,0,0,0
 "Floppy, erect, or semi-pricked ears that twitch at every sound, adding to its attentive demeanour.",0,1,0,0,0
 "A wagging tail, sometimes bushy or sleek, that signals excitement or contentment.",0,1,0,0,0
 "Strong legs with sturdy paws, built for running, digging, or bounding enthusiastically.",0,1,0,0,0
+"A variety of shapes and sizes of ears, eyes, and noses, providing a range of signals and expressions.",0,1,0,0,0
 "A lightweight body covered in a sleek layer of feathers, often vibrant and patterned with striking colours.",0,0,1,0,0
 "A pointed beak, varying in shape and size, adapted for pecking, preening, or foraging.",0,0,1,0,0
 "Bright, round eyes positioned on the sides of a small head, offering keen vision and a watchful gaze.",0,0,1,0,0
 "Wings that fold neatly against the body when at rest, designed for swift flight or graceful gliding.",0,0,1,0,0
 "Slender legs ending in sharp, gripping claws, perfect for perching, climbing, or foraging on the ground.",0,0,1,0,0
+"A bushy tail that sways or wags, often adorned with patterns or colours that complement its plumage.",0,0,1,0,0
 "A streamlined body covered in smooth, shimmering scales that reflect light in iridescent hues.",0,0,0,1,0
 "A set of gills on either side of its head, fluttering rhythmically as it breathes underwater.",0,0,0,1,0
 "Large, rounded eyes positioned for wide peripheral vision, aiding its alertness in aquatic environments.",0,0,0,1,0
 "Fins of varying shapes and sizes, including a dorsal fin for stability and a tail fin for propulsion.",0,0,0,1,0
+"A sinuous body that glides through the water with ease, propelled by powerful muscles and a strong tail.",0,0,0,1,0
 "A small mouth that opens and closes gently, sometimes surrounded by barbels or other sensory structures.",0,0,0,1,0
 "A strong, muscular frame with a glossy coat that can range from solid colours to striking patterns.",0,0,0,0,1
 "A long, flowing mane cascades down its neck, complemented by a thick, sweeping tail.",0,0,0,0,1
 "Large, expressive eyes sit on either side of a long, elegant face, full of intelligence and awareness.",0,0,0,0,1
 "Tall, slender legs end in sturdy hooves, built for speed, endurance, and graceful movement.",0,0,0,0,1
 "Upright ears rotate attentively, capturing every sound in its surroundings.",0,0,0,0,1
+"An expressive face with a delicate muzzle, framed by a mane or shaggy coat in a variety of colours.",0,0,0,0,1

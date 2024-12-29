@@ -129,7 +129,7 @@ def main(model_file, onnx_file, quant_file, data_file, vocab_path, label_file):
     max_seq_length = 512                # Maximum sequence length
     learning_rate = 1e-4                # Learning rate
     batch_size = 32                     # Batch size
-    epochs = 10                         # Number of training epochs
+    epochs = 20                         # Number of training epochs
     dropout = 0.1                       # Dropout rate
 
     # Quantization-related configs

@@ -60,6 +60,18 @@
           }
           console.log(result)
           document.getElementById("outcome").innerText = result
+
+          // Print the unknown words
+          const noDupUnknownWords = [...new Set(unknownWords)]
+          let unknownWordList = ""
+          for (let i = 0; i < noDupUnknownWords.length; i++) {
+            unknownWordList += noDupUnknownWords[i].toString()
+            if (unknownWordList.slice(-1) !== ",") {
+              unknownWordList += " "
+            }
+          }
+          console.log(noDupUnknownWords.length)
+          console.log(" unkown tokens:\n", unknownWordList)
         } catch (e) {
           console.error("Error during prediction:", e)
         }
